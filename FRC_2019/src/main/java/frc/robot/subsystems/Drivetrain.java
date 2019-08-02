@@ -385,7 +385,7 @@ public class Drivetrain extends Subsystem {
         if(state != DriveControlState.VISION || !RobotState.visionTarget.isTargetVisible()) {
             return true;
         }
-        return Math.abs(DESIRED_TARGET_AREA - RobotState.visionTarget.getTargetArea()) < VISION_THRESHOLD;
+        return RobotState.visionTarget.hasReachedTarget();
     }
 
 

@@ -26,6 +26,7 @@ import frc.team254.lib.util.InterpolatingTreeMap;
  */
 public class RobotState {
     private static RobotState instance = null;
+    
     public static RobotState getInstance() {
         if(instance == null) 
             instance = new RobotState();
