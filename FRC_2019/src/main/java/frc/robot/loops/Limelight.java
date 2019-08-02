@@ -53,6 +53,14 @@ public class Limelight implements Loop {
             limelightTable.getEntry("ta"), limelightTable.getEntry("tv"));
     }
 
+    public void ledsOn(boolean on){
+        if(ledMode.getDouble(1) != 0 && on) {
+            ledMode.setNumber(0);
+        } else if(ledMode.getDouble(0) != 1 && !on) {
+            ledMode.setNumber(1);
+        }
+    }
+
     @Override
     public void onLoop(double timestamp) {
 

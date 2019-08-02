@@ -167,25 +167,23 @@ public class Robot extends TimedRobot {
 
   private void driveWithTwoControllers() {
 
-    if(driver.aButton.wasActivated()) {
-      s.hatchRetrievingState();
-      return;
-    } else if (operator.backButton.isBeingPressed()) {
-      if(operator.aButton.wasActivated()) {
+    if (operator.backButton.isBeingPressed()) {
+      if (operator.rightBumper.wasActivated()) {
+        s.hatchRetrievingState();
+      } else if (operator.aButton.wasActivated()) {
         s.deployingState(Superstructure.ElevatorHeights.FIRST_LEVEL);
-        return;
-      } else if(operator.xButton.wasActivated()) {
+      } else if (operator.xButton.wasActivated()) {
         s.deployingState(Superstructure.ElevatorHeights.SECOND_LEVEL);
-        return;
-      } else if(operator.yButton.wasActivated()) {
+      } else if (operator.yButton.wasActivated()) {
         s.deployingState(Superstructure.ElevatorHeights.THIRD_LEVEL);
-        return;
-      } else if(operator.bButton.wasActivated()) {
+      } else if (operator.bButton.wasActivated()) {
         s.deployingState(Superstructure.ElevatorHeights.CARGO_SHIP);
-        return;
       }
+      return;
     }
-    
+
+  
+
     double driveThrottle = driver.getY(Hand.kRight);
     double turn = driver.getX(Hand.kLeft);
     boolean isQuickTurn = driver.getStartButton();
@@ -196,12 +194,10 @@ public class Robot extends TimedRobot {
     boolean hasCargo = intake.hasCargo();
     boolean hasHatch = hatchMech.hasHatch();
 
-
-
-
     /**
-     * The following series of nested if statements is the control logic behind setting the appropriate 
-     * state of the intake state machine as determined by operator gamepad
+     * The following series of nested if statements is the control logic behind
+     * setting the appropriate state of the intake state machine as determined by
+     * operator gamepad
      */
 
     if (operator.dpadUp.wasActivated() || elevatorUp || hasCargo || hasHatch) {
@@ -222,8 +218,8 @@ public class Robot extends TimedRobot {
       if (hasHatch) {
         intake.conformToState(Intake.State.CARGO_PHOBIC);
       } else if (operator.rightTrigger.isBeingPressed()) {
-        if(hasCargo) {
-          if(elevatorUp) {
+        if (hasCargo) {
+          if (elevatorUp) {
             intake.conformToState(Intake.State.INTAKE_ELEVATOR_UP);
           } else {
             intake.conformToState(Intake.State.HOLDING);
@@ -232,13 +228,13 @@ public class Robot extends TimedRobot {
           intake.conformToState(Intake.State.INTAKE_WITHOUT_KEBABS);
         }
       } else if (operator.leftTrigger.isBeingPressed()) {
-        if(hasCargo && elevatorUp) {
+        if (hasCargo && elevatorUp) {
           intake.conformToState(Intake.State.OUTAKE_ELEVATOR_UP);
         } else {
           intake.conformToState(Intake.State.OUTAKE_WITHOUT_KEBABS);
         }
       } else {
-        if(hasCargo) {
+        if (hasCargo) {
           intake.conformToState(Intake.State.HOLDING);
         } else {
           intake.conformToState(Intake.State.OFF);
@@ -247,22 +243,24 @@ public class Robot extends TimedRobot {
     }
 
     /**
-     * The following is the logic for controlling the state of the hatch mechnanism state machine as determined by
-     * operator gamepad
+     * The following is the logic for controlling the state of the hatch mechnanism
+     * state machine as determined by operator gamepad
      * 
-     * Note: the "Recieving" state of the hatch mechanism automatically transfers to stowed when the hatch limit switch
-     * is active. This is not an element of the drive method because this function has utility in auto programs as well
-    */
+     * Note: the "Recieving" state of the hatch mechanism automatically transfers to
+     * stowed when the hatch limit switch is active. This is not an element of the
+     * drive method because this function has utility in auto programs as well
+     */
 
-    if(hasCargo) {
+    if (hasCargo) {
       hatchMech.conformToState(HatchMechanism.State.STOWED);
     } else {
-      if(driver.rightBumper.wasActivated()) {
+      if (driver.rightBumper.wasActivated()) {
         hatchMech.conformToState(HatchMechanism.State.RECIEVING);
-      } else if(driver.leftBumper.wasActivated()) {
+      } else if (driver.leftBumper.wasActivated()) {
         hatchMech.conformToState(HatchMechanism.State.SCORING);
-      } else if (hatchMech.getState() == HatchMechanism.State.STOWED || hatchMech.getState() == HatchMechanism.State.FINGERS_STOWED_EXTENDED) {
-        if(operator.startButton.isBeingPressed()) {
+      } else if (hatchMech.getState() == HatchMechanism.State.STOWED
+          || hatchMech.getState() == HatchMechanism.State.FINGERS_STOWED_EXTENDED) {
+        if (operator.startButton.isBeingPressed()) {
           hatchMech.conformToState(State.FINGERS_STOWED_EXTENDED);
         } else {
           hatchMech.conformToState(State.STOWED);
@@ -270,31 +268,28 @@ public class Robot extends TimedRobot {
       }
     }
 
-
     /**
-     * The following is the logic for controlling the state of the elevator state machine as determined by operator gamepad
+     * The following is the logic for controlling the state of the elevator state
+     * machine as determined by operator gamepad
      */
 
     double manualControlJoystick = operator.getX(Hand.kLeft);
 
-    if(manualControlJoystick != 0) {
+    if (manualControlJoystick != 0) {
       elevator.setOpenLoop(manualControlJoystick);
-    } else if(operator.aButton.wasActivated()) {
+    } else if (operator.aButton.wasActivated()) {
       elevator.setTargetHeight(Superstructure.ElevatorHeights.FIRST_LEVEL.getHeight());
-    } else if(operator.xButton.wasActivated()) {
+    } else if (operator.xButton.wasActivated()) {
       elevator.setTargetHeight(Superstructure.ElevatorHeights.SECOND_LEVEL.getHeight());
-    } else if(operator.yButton.wasActivated()) {
+    } else if (operator.yButton.wasActivated()) {
       elevator.setTargetHeight(Superstructure.ElevatorHeights.THIRD_LEVEL.getHeight());
-    } else if(operator.bButton.wasActivated()) {
+    } else if (operator.bButton.wasActivated()) {
       elevator.setTargetHeight(Superstructure.ElevatorHeights.CARGO_SHIP.getHeight());
-    } else if(elevator.isOpenLoop() || elevator.hasReachedTargetHeight()) {
+    } else if (operator.leftBumper.wasActivated()){
+      elevator.setTargetHeight(Superstructure.ElevatorHeights.DOWN.getHeight());
+    } else if (elevator.isOpenLoop() || elevator.hasReachedTargetHeight()) {
       elevator.lockHeight();
     }
-
-
-
-
-
 
   }
 

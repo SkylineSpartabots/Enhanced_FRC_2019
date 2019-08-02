@@ -9,16 +9,17 @@ package frc.robot.auto.modes;
 
 import frc.robot.auto.AutoModeBase;
 import frc.robot.auto.AutoModeEndedException;
+import frc.utils.TelemetryUtil;
+import frc.utils.TelemetryUtil.PrintStyle;
 
 /**
  * Add your docs here.
  */
 public class StandStill extends AutoModeBase {
-
     
 
     @Override
     protected void routine() throws AutoModeEndedException {
-
+        TelemetryUtil.print("Started and finished standstill auto", PrintStyle.INFO);
 	}
 }

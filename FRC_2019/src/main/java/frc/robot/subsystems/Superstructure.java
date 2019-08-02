@@ -58,6 +58,7 @@ public class Superstructure extends Subsystem {
     }
 
     public enum ElevatorHeights {
+        DOWN(0, 0),
         FIRST_LEVEL(0, 0),
         SECOND_LEVEL(0, 0),
         THIRD_LEVEL(0, 0),

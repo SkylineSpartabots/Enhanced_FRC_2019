@@ -7,8 +7,15 @@
 
 package frc.robot.auto;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.auto.actions.Action;
+import frc.robot.paths.TrajectoryGenerator;
+import frc.team254.lib.geometry.Pose2dWithCurvature;
+import frc.team254.lib.trajectory.Trajectory;
+import frc.team254.lib.trajectory.timing.TimedState;
 
 /**
  * Add your docs here.
@@ -17,7 +24,11 @@ public abstract class AutoModeBase {
     protected double updateRate = 1.0/50.0;
     protected boolean active = false;
 
-    //TODO: add trajectory stuff
+    protected static TrajectoryGenerator.TrajectorySet trajectories = TrajectoryGenerator.getInstance().getTrajectorySet();
+
+    public List<Trajectory<TimedState<Pose2dWithCurvature>>> getPaths() {
+        return new ArrayList<>();
+    }
 
     protected double startTime = 0.0;
     protected double currentTime() {

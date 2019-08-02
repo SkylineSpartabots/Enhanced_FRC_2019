@@ -26,6 +26,7 @@ import frc.drivers.LazyTalonSRX;
 import frc.robot.Constants;
 import frc.robot.Ports;
 import frc.robot.RobotState;
+import frc.robot.loops.Limelight;
 import frc.robot.loops.Loop;
 import frc.robot.subsystems.requests.Request;
 import frc.team254.lib.geometry.Pose2d;
@@ -214,7 +215,7 @@ public class Drivetrain extends Subsystem {
             setBrakeMode(false);
             leftMaster.configNeutralDeadband(0.04, 0);
             rightMaster.configNeutralDeadband(0.04, 0);
-
+            Limelight.getInstance().ledsOn(false);
             state = DriveControlState.OPEN_LOOP;
         }
 
@@ -238,6 +239,7 @@ public class Drivetrain extends Subsystem {
             setBrakeMode(true);
             leftMaster.configNeutralDeadband(0.0, 0);
             rightMaster.configNeutralDeadband(0.0, 0);
+            Limelight.getInstance().ledsOn(true);
             visionDrivePID.reset();
             visionTurnPID.reset();
             state = DriveControlState.VISION;
@@ -252,6 +254,7 @@ public class Drivetrain extends Subsystem {
             rightMaster.selectProfileSlot(0, 0);
             leftMaster.configNeutralDeadband(0, 10);
             rightMaster.configNeutralDeadband(0, 10);
+            Limelight.getInstance().ledsOn(false);
             state = DriveControlState.PATH_FOLLOWING;
         }
 

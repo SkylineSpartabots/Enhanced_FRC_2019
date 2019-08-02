@@ -61,6 +61,10 @@ public class TrajectoryGenerator {
         }
     }
 
+    public TrajectorySet getTrajectorySet() {
+        return trajectorySet;
+    }
+
     public Trajectory<TimedState<Pose2dWithCurvature>> generateTrajectory (
         boolean reversed,
         final List<Pose2d> waypoints,
