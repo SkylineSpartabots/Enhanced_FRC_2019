@@ -61,6 +61,14 @@ public class Limelight implements Loop {
         }
     }
 
+    public void setVisionMode() {
+        camMode.setNumber(0);
+    }
+
+    public void setDriverMode() {
+        camMode.setNumber(1);
+    }
+
     @Override
     public void onLoop(double timestamp) {
 
