@@ -7,34 +7,47 @@
 
 package frc.robot.auto.actions;
 
-import edu.wpi.first.wpilibj.Timer;
-import frc.robot.subsystems.HatchMechanism;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Add your docs here.
  */
-public class WaitForHatchAction implements Action {
+public class SeriesAction implements Action {
 
-    private double timeout;
-    private double startTime = 0;
+    private Action currentAction;
+    private final ArrayList<Action> remainingActions;
 
-    public WaitForHatchAction(double timeout) {
-        this.timeout = timeout;
+    public SeriesAction(List<Action> actions) {
+        remainingActions = new ArrayList<>(actions);
+        currentAction = null;
     }
-    
+
     @Override
     public boolean isFinished() {
-        return (Timer.getFPGATimestamp() - startTime) >= timeout || HatchMechanism.getInstance().hasHatch();
+        return remainingActions.isEmpty() && currentAction == null;
     }
 
     @Override
     public void start() {
-        startTime = Timer.getFPGATimestamp();
+
     }
 
     @Override
     public void update() {
+        if(currentAction == null) {
+            if(remainingActions.isEmpty()) {
+                return;
+            }
 
+            currentAction = remainingActions.remove(0);
+            currentAction.start();
+        }
+
+        if(currentAction.isFinished()) {
+            currentAction.isFinished();
+            currentAction = null;
+        }
     }
 
     @Override
