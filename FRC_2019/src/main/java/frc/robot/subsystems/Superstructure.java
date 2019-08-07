@@ -26,8 +26,9 @@ import frc.robot.subsystems.requests.RequestList;
  */
 public class Superstructure extends Subsystem {
     private static Superstructure instance = null;
+
     public static Superstructure getInstance() {
-        if(instance == null)
+        if (instance == null)
             instance = new Superstructure();
         return instance;
     }
@@ -36,11 +37,10 @@ public class Superstructure extends Subsystem {
     private HatchMechanism hatchMech;
     private Elevator elevator;
     private Drivetrain drive;
-    
+
     private RobotState robotState;
 
     private Compressor compressor;
-
 
     private Superstructure() {
         intake = Intake.getInstance();
@@ -58,11 +58,7 @@ public class Superstructure extends Subsystem {
     }
 
     public enum ElevatorHeights {
-        DOWN(0, 0),
-        FIRST_LEVEL(0, 0),
-        SECOND_LEVEL(0, 0),
-        THIRD_LEVEL(0, 0),
-        CARGO_SHIP(0, 0);
+        DOWN(0, 0), FIRST_LEVEL(0, 0), SECOND_LEVEL(0, 0), THIRD_LEVEL(0, 0), CARGO_SHIP(0, 0);
 
         public double hatchPosition;
         public double cargoPosition;
@@ -73,14 +69,13 @@ public class Superstructure extends Subsystem {
         }
 
         public double getHeight() {
-            if(Intake.getInstance().hasCargo() && !HatchMechanism.getInstance().hasHatch()) {
+            if (Intake.getInstance().hasCargo() && !HatchMechanism.getInstance().hasHatch()) {
                 return cargoPosition;
             }
             return hatchPosition;
 
         }
     }
-
 
     private RequestList activeRequests;
     private ArrayList<RequestList> queuedRequests;
@@ -89,6 +84,7 @@ public class Superstructure extends Subsystem {
     private boolean newRequests = false;
     private boolean activeRequestsCompleted = false;
     private boolean allRequestsCompleted = false;
+
     public boolean requestsCompleted() {
         return allRequestsCompleted;
     }
@@ -101,10 +97,11 @@ public class Superstructure extends Subsystem {
     private void setQueuedRequests(List<RequestList> requests) {
         queuedRequests.clear();
         queuedRequests = new ArrayList<>(requests.size());
-        for(RequestList list : requests) {
+        for (RequestList list : requests) {
             queuedRequests.add(list);
         }
     }
+
     private void setActiveRequests(RequestList requests) {
         activeRequests = requests;
         newRequests = true;
@@ -175,19 +172,21 @@ public class Superstructure extends Subsystem {
 
         @Override
         public void onLoop(double timestamp) {
-            if(!activeRequestsCompleted) {
-                if(newRequests) {
-                    if(activeRequests.isParallel()) {
+            if (!activeRequestsCompleted) {
+                if (newRequests) {
+                    if (activeRequests.isParallel()) {
                         boolean allActivated = true;
-                        for(Iterator<Request> iterator = activeRequests.getRequests().iterator(); iterator.hasNext();) {
+                        for (Iterator<Request> iterator = activeRequests.getRequests().iterator(); iterator
+                                .hasNext();) {
                             Request request = iterator.next();
                             boolean allowed = request.allowed();
                             allActivated &= allowed;
-                            if(allowed) request.act();
+                            if (allowed)
+                                request.act();
                         }
                         newRequests = !allActivated;
                     } else {
-                        if(activeRequests.isEmpty()) {
+                        if (activeRequests.isEmpty()) {
                             activeRequestsCompleted = true;
                             return;
                         }
@@ -196,22 +195,22 @@ public class Superstructure extends Subsystem {
                         newRequests = false;
                     }
                 }
-                if(activeRequests.isParallel()) {
+                if (activeRequests.isParallel()) {
                     boolean done = true;
-                    for(Request request : activeRequests.getRequests()) {
+                    for (Request request : activeRequests.getRequests()) {
                         done &= request.isFinished();
                     }
                     activeRequestsCompleted = done;
-                } else if(currentRequest.isFinished()) {
-                    if(activeRequests.isEmpty()) {
+                } else if (currentRequest.isFinished()) {
+                    if (activeRequests.isEmpty()) {
                         activeRequestsCompleted = true;
-                    } else if(activeRequests.getRequests().get(0).allowed()) {
+                    } else if (activeRequests.getRequests().get(0).allowed()) {
                         newRequests = true;
-                        activeRequestsCompleted = true;
+                        activeRequestsCompleted = false;
                     }
                 }
             } else {
-                if(!queuedRequests.isEmpty()) {
+                if (!queuedRequests.isEmpty()) {
                     setActiveRequests(queuedRequests.remove(0));
                 } else {
                     allRequestsCompleted = true;
@@ -228,9 +227,8 @@ public class Superstructure extends Subsystem {
 
     public RequestList disabledRequest() {
         return new RequestList(Arrays.asList(elevator.openLoopRequest(0.0), intake.stateRequest(Intake.State.OFF),
-            hatchMech.stateRequest(HatchMechanism.State.STOWED)), true);
+                hatchMech.stateRequest(HatchMechanism.State.STOWED)), true);
     }
-
 
     @Override
     public void outputTelemetry() {
@@ -248,52 +246,42 @@ public class Superstructure extends Subsystem {
     }
 
     public void hatchRetrievingState() {
-        RequestList state = new RequestList(Arrays.asList(
-            drive.alignToTargetRequest(),
-            elevator.heightRequest(ElevatorHeights.FIRST_LEVEL.hatchPosition),
-            hatchMech.stateRequest(HatchMechanism.State.RECIEVING),
-            intake.stateRequest(Intake.State.CARGO_PHOBIC)), true);
+        RequestList state = new RequestList(Arrays.asList(drive.alignToTargetRequest(),
+                elevator.heightRequest(ElevatorHeights.FIRST_LEVEL.hatchPosition),
+                hatchMech.stateRequest(HatchMechanism.State.RECIEVING), intake.stateRequest(Intake.State.CARGO_PHOBIC)),
+                true);
         request(state);
     }
 
     public void deployingState(ElevatorHeights height) {
-        if(HatchMechanism.getInstance().hasHatch()) {
-            RequestList state = new RequestList(Arrays.asList(
-                drive.alignToTargetRequest(),
-                elevator.heightRequest(height.hatchPosition),
-                hatchMech.stateRequest(HatchMechanism.State.STOWED),
-                intake.stateRequest(Intake.State.OFF)), true);
-            RequestList queue = new RequestList(Arrays.asList(
-                hatchMech.stateRequest(HatchMechanism.State.SCORING),
-                waitRequest(0.3),
-                hatchMech.stateRequest(HatchMechanism.State.STOWED),
-                waitRequest(0.2),
-                elevator.heightRequest(ElevatorHeights.FIRST_LEVEL.hatchPosition)), false);
+        if (HatchMechanism.getInstance().hasHatch()) {
+            RequestList state = new RequestList(
+                    Arrays.asList(drive.alignToTargetRequest(), elevator.heightRequest(height.hatchPosition),
+                            hatchMech.stateRequest(HatchMechanism.State.STOWED), intake.stateRequest(Intake.State.OFF)),
+                    true);
+            RequestList queue = new RequestList(Arrays.asList(hatchMech.stateRequest(HatchMechanism.State.SCORING),
+                    waitRequest(0.3), hatchMech.stateRequest(HatchMechanism.State.STOWED), waitRequest(0.2),
+                    elevator.heightRequest(ElevatorHeights.FIRST_LEVEL.hatchPosition)), false);
             request(state);
             replaceQueue(queue);
         } else if (Intake.getInstance().hasCargo()) {
-            RequestList state = new RequestList(Arrays.asList(
-                drive.alignToTargetRequest(),
-                elevator.heightRequest(height.cargoPosition),
-                hatchMech.stateRequest(HatchMechanism.State.STOWED),
-                intake.stateRequest(Intake.State.OFF)), true);
-            RequestList queue = new RequestList(Arrays.asList(
-                intake.stateRequest(Intake.State.OUTAKE_ELEVATOR_UP),
-                waitRequest(0.3),
-                intake.stateRequest(Intake.State.OFF),
-                elevator.heightRequest(ElevatorHeights.FIRST_LEVEL.hatchPosition)), false);
+            RequestList state = new RequestList(
+                    Arrays.asList(drive.alignToTargetRequest(), elevator.heightRequest(height.cargoPosition),
+                            hatchMech.stateRequest(HatchMechanism.State.STOWED), intake.stateRequest(Intake.State.OFF)),
+                    true);
+            RequestList queue = new RequestList(Arrays.asList(intake.stateRequest(Intake.State.OUTAKE_ELEVATOR_UP),
+                    waitRequest(0.3), intake.stateRequest(Intake.State.OFF),
+                    elevator.heightRequest(ElevatorHeights.FIRST_LEVEL.hatchPosition)), false);
             request(state);
             replaceQueue(queue);
         }
-        
+
     }
 
-
-
     public Request waitRequest(double seconds) {
-        return new Request(){
+        return new Request() {
             double startTime = 0;
-            double waitTime= 1;
+            double waitTime = 1;
 
             @Override
             public void act() {

@@ -60,4 +60,12 @@ public class Constants {
 	public static final double kPathKX = 0;
 
 	public static final double kDriveVelocityKd = 0;
+
+	public static final int CLIMB_ENCODER_STARTING_HEIGHT = 0;
+
+	public static final double MAX_CLIMB_HEIGHT = 0;
+
+	public static final double CLIMB_TICKS_PER_INCH = 0;
+
+	public static final double MIN_CLIMB_HEIGHT = 0;
 }

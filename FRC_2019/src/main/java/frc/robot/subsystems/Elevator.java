@@ -99,7 +99,7 @@ public class Elevator extends Subsystem {
         }
 
         master.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);    
-        master.setSensorPhase(false); //TODO:set true if sensor reads backwards to output
+        master.setSensorPhase(false); //TODO: set true if sensor reads backwards to output
 
         master.configReverseSoftLimitThreshold(Constants.elevatorEncoderStartingPosition, 10);
         master.configForwardSoftLimitThreshold(Constants.elevatorEncoderStartingPosition + inchesToEncUnits(Constants.maxElevatorHeight), 10);

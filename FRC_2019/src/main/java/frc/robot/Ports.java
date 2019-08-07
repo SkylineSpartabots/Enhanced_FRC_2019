@@ -40,6 +40,9 @@ public class Ports {
 	public static final int DRIVE_LEFT_FRONT = 0;
 	public static final int Drive_LEFT_BACK = 0;
 	public static final int JACKS_SOLENOID = 0;
+	public static final int RIGHT_CLIMB_MOTOR = 0;
+	public static final int LEFT_CLIMB_MOTOR = 0;
+	public static final int VACUUM_MOTOR = 0;
 
 
 }
