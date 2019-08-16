@@ -82,12 +82,12 @@ public class Elevator extends Subsystem {
     private PeriodicIO periodicIO = new PeriodicIO();
 
     private Elevator() {
-        master = new LazyTalonSRX(Ports.RIGHT_ELEVATOR_MOTOR);
-        slave = new LazyTalonSRX(Ports.LEFT_ELEVATOR_MOTOR);
+        master = new LazyTalonSRX(Ports.LEFT_ELEVATOR_MOTOR);
+        slave = new LazyTalonSRX(Ports.RIGHT_ELEVATOR_MOTOR);
 
         motors = Arrays.asList(master, slave);
 
-        slave.follow(master);
+        slave.set(ControlMode.Follower, Ports.LEFT_ELEVATOR_MOTOR);
 
         master.setInverted(false);
         slave.setInverted(InvertType.FollowMaster);
@@ -118,9 +118,9 @@ public class Elevator extends Subsystem {
 
     private void setCurrentLimit(int amps) {
         for(LazyTalonSRX motor : motors) {
-            motor.configContinuousCurrentLimit(amps, 10);
-            motor.configPeakCurrentLimit(amps, 10);
-            motor.configPeakCurrentDuration(10, 10);
+            motor.configContinuousCurrentLimit(amps);
+            motor.configPeakCurrentLimit(amps);
+            motor.configPeakCurrentDuration(10);
             motor.enableCurrentLimit(true);
         }
     }
@@ -128,9 +128,9 @@ public class Elevator extends Subsystem {
    
 
     private void configForAscent() {
-        master.config_kP(0, 0.016, 10);
-        master.config_kI(0, 0.004, 10);
-        master.config_kD(0, 0.002, 10);
+        master.config_kP(0, 0.016);
+        master.config_kI(0, 0.004);
+        master.config_kD(0, 0.002);
         /*master.config_kF(0, kF, 10);
 
         master.config_kP(1, kP, 10);
@@ -259,7 +259,7 @@ public class Elevator extends Subsystem {
             TelemetryUtil.print("Elevator height is out of bounds", PrintStyle.ERROR);
             hasEmergency = true;
         }
-        master.setSelectedSensorPosition(absolutePosition, 0, 10);
+        master.setSelectedSensorPosition(absolutePosition, 0, 50);
      }
 
     public Request openLoopRequest(double input) {

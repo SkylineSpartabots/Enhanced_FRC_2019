@@ -25,6 +25,8 @@ import frc.robot.Ports;
 import frc.robot.loops.ILooper;
 import frc.robot.loops.Loop;
 import frc.robot.subsystems.requests.Request;
+import frc.utils.TelemetryUtil;
+import frc.utils.TelemetryUtil.PrintStyle;
 
 /**
  * Intake state machine
@@ -60,14 +62,14 @@ public class Intake extends Subsystem {
             motor.setNeutralMode(NeutralMode.Brake);
             motor.configVoltageCompSaturation(12.0);
             motor.enableVoltageCompensation(true);
-            motor.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 20, 10);
-            motor.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 20, 10);
+            motor.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 20);
+            motor.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 20);
         }
 
-        innerIntakeMotor.setInverted(false);
-        masterKebab.setInverted(false);
+        innerIntakeMotor.setInverted(true);
+        masterKebab.setInverted(true);
 
-        slaveKebab.follow(masterKebab);
+        slaveKebab.set(ControlMode.Follower, Ports.RIGHT_KEBAB);
         slaveKebab.setInverted(InvertType.OpposeMaster);
 
         setCurrentLimits(30);
@@ -82,9 +84,9 @@ public class Intake extends Subsystem {
 
     public void setCurrentLimits(int amps) {
         for(LazyTalonSRX motor : motors) {
-            motor.configContinuousCurrentLimit(amps, 10);
-            motor.configPeakCurrentLimit(amps, 10);
-            motor.configPeakCurrentDuration(10, 10);
+            motor.configContinuousCurrentLimit(amps);
+            motor.configPeakCurrentLimit(amps);
+            motor.configPeakCurrentDuration(10);
             motor.enableCurrentLimit(true);
         }
     }
@@ -190,18 +192,27 @@ public class Intake extends Subsystem {
                     break;
                 case HOLDING:
                     hasCargo = true;
-                    if(!isCargoFromSensor())
+                    TelemetryUtil.print("Is Holding!!", PrintStyle.INFO);
+                    if(!isCargoFromSensor()) {
                         setInnerIntakeSpeed(0.5);
+                    } else {
+                        setInnerIntakeSpeed(0);
+                    }
                     break;
                 case CARGO_PHOBIC:
                     hasCargo = false;
-                    if(isCargoFromSensor()) 
+                    if(isCargoFromSensor()) { 
                         setInnerIntakeSpeed(-0.7);
+                    } else {
+                        setInnerIntakeSpeed(0);
+                    }
+
                     break;
                 default:
+                    boolean rawCargo = isCargoFromSensor();
                     if(stateChanged) 
                         hasCargo = false;
-                    if(isCargoFromSensor()) {
+                    if(rawCargo) {
                         if(Double.isInfinite(beamBreakSensorBeganTimestamp)) {
                             beamBreakSensorBeganTimestamp = timestamp;
                         } else {
@@ -209,7 +220,7 @@ public class Intake extends Subsystem {
                                 hasCargo = true;
                             }
                         }
-                    } else if(!Double.isFinite(beamBreakSensorBeganTimestamp)) {
+                    } else if(!Double.isInfinite(beamBreakSensorBeganTimestamp)) {
                         beamBreakSensorBeganTimestamp = Double.POSITIVE_INFINITY;
                     }
                     break;
@@ -262,8 +273,21 @@ public class Intake extends Subsystem {
     @Override
     public void outputTelemetry() {
         SmartDashboard.putBoolean("Has Cargo", hasCargo());
+        SmartDashboard.putBoolean("Raw Cargo", isCargoFromSensor());
+        SmartDashboard.putNumber("Inner Intake Current", innerIntakeMotor.getOutputCurrent());
+        SmartDashboard.putNumber("Inner Intake Voltage", innerIntakeMotor.getMotorOutputVoltage());
+        SmartDashboard.putNumber("Inner Intake Output", innerIntakeMotor.getMotorOutputPercent());
 
-        if(Constants.showDebugOutput) {
+        SmartDashboard.putNumber("Right Kebab Current", masterKebab.getOutputCurrent());
+        SmartDashboard.putNumber("Right Kebab Voltage", masterKebab.getMotorOutputVoltage());
+        SmartDashboard.putNumber("Right Kebab Output", masterKebab.getMotorOutputPercent());
+
+        SmartDashboard.putNumber("Left Kebab Current", slaveKebab.getOutputCurrent());
+        SmartDashboard.putNumber("Left Kebab Voltage", slaveKebab.getMotorOutputVoltage());
+        SmartDashboard.putNumber("Left Kebab Output", slaveKebab.getMotorOutputPercent());
+        
+
+        /*if(Constants.showDebugOutput) {
             SmartDashboard.putNumber("Inner Intake Current", innerIntakeMotor.getOutputCurrent());
             SmartDashboard.putNumber("Inner Intake Voltage", innerIntakeMotor.getMotorOutputVoltage());
             SmartDashboard.putNumber("Inner Intake Output", innerIntakeMotor.getMotorOutputPercent());
@@ -275,7 +299,7 @@ public class Intake extends Subsystem {
             SmartDashboard.putNumber("Left Kebab Current", slaveKebab.getOutputCurrent());
             SmartDashboard.putNumber("Left Kebab Voltage", slaveKebab.getMotorOutputVoltage());
             SmartDashboard.putNumber("Left Kebab Output", slaveKebab.getMotorOutputPercent());
-        }
+        }*/
     }
 
     @Override

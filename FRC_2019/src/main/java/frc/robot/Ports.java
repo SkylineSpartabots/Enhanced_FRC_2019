@@ -13,36 +13,35 @@ package frc.robot;
 public class Ports {
 
     //Intake Subystem Ports
-    public final static int INNER_INTAKE_MOTOR = 0;
-    public final static int RIGHT_KEBAB = 0;
-    public final static int LEFT_KEBAB = 0;
-
-    public final static int KEBAB_SOLENOID = 0;
-    
+    public final static int INNER_INTAKE_MOTOR = 6;
+    public final static int RIGHT_KEBAB = 8;
+    public final static int LEFT_KEBAB = 11;
+    public final static int KEBAB_SOLENOID = 2; //or 2
     public final static int BEAM_BREAK = 0;
 
     //Hatch Mechanism Subsystem Ports
-    public final static int FINGERS_SOLENOID = 0;
-    public final static int SLIDER_SOLENOID = 0;
-
-    public final static int HATCH_LIMIT_SWITCH = 0;
+    public final static int FINGERS_SOLENOID = 6; //or 7
+    public final static int SLIDER_SOLENOID = 7; //or 6
+    public static final int JACKS_SOLENOID = 1; // or 1
+    public final static int HATCH_DISTANCE_SENSOR = 3;
 
     //Elevator Ports
-    public final static int RIGHT_ELEVATOR_MOTOR = 0;
-    public final static int LEFT_ELEVATOR_MOTOR = 0;
+    public final static int RIGHT_ELEVATOR_MOTOR = 5;
+    public final static int LEFT_ELEVATOR_MOTOR = 14;
     public static final int ELEVATOR_LIMIT_SWITCH = 0;
     
+    //Drivetrain Ports
+	public static final int DRIVE_RIGHT_CENTER = 3;
+	public static final int DRIVE_RIGHT_FRONT = 4;
+	public static final int DRIVE_RIGHT_BACK = 2;
+	public static final int DRIVE_LEFT_CENTER = 15;
+	public static final int DRIVE_LEFT_FRONT = 12;
+    public static final int DRIVE_LEFT_BACK = 13;
     
-	public static final int DRIVE_RIGHT_CENTER = 0;
-	public static final int DRIVE_RIGHT_FRONT = 0;
-	public static final int DRIVE_RIGHT_BACK = 0;
-	public static final int DRIVE_LEFT_CENTER = 0;
-	public static final int DRIVE_LEFT_FRONT = 0;
-	public static final int Drive_LEFT_BACK = 0;
-	public static final int JACKS_SOLENOID = 0;
-	public static final int RIGHT_CLIMB_MOTOR = 0;
-	public static final int LEFT_CLIMB_MOTOR = 0;
-	public static final int VACUUM_MOTOR = 0;
+	//Climb Ports
+	public static final int RIGHT_CLIMB_MOTOR = 7;
+	public static final int LEFT_CLIMB_MOTOR = 10;
+	public static final int VACUUM_MOTOR = 11;
 
 
 }

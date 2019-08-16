@@ -14,7 +14,7 @@ import edu.wpi.first.wpilibj.Solenoid;
  */
 public class LazySolenoid extends Solenoid {
 
-    protected Boolean state = null;
+    protected boolean state = false;
 
     public LazySolenoid(int deviceID) {
         super(deviceID);

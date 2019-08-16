@@ -33,11 +33,6 @@ public class RobotState {
         return instance;
     }
 
-    private boolean seesTarget = false;
-    public boolean seesTarget() {
-        return seesTarget;
-    }
-
     private static final int observationBufferSize = 100;
 
     private InterpolatingTreeMap<InterpolatingDouble, Pose2d> fieldToVehicle;

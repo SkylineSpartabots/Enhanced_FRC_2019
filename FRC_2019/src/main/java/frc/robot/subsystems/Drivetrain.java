@@ -79,7 +79,7 @@ public class Drivetrain extends Subsystem {
     private Drivetrain() {
         leftMaster = new LazyTalonSRX(Ports.DRIVE_LEFT_CENTER);
         leftSlaveA = new LazyTalonSRX(Ports.DRIVE_LEFT_FRONT);
-        leftSlaveB = new LazyTalonSRX(Ports.Drive_LEFT_BACK);
+        leftSlaveB = new LazyTalonSRX(Ports.DRIVE_LEFT_BACK);
 
         rightMaster = new LazyTalonSRX(Ports.DRIVE_RIGHT_CENTER);
         rightSlaveA = new LazyTalonSRX(Ports.DRIVE_RIGHT_FRONT);
@@ -99,19 +99,19 @@ public class Drivetrain extends Subsystem {
         slaves.forEach((s) -> s.setInverted(InvertType.FollowMaster));
 
         for(LazyTalonSRX motor : motors) {
-            motor.configVoltageCompSaturation(12.0, 10);
+            motor.configVoltageCompSaturation(12.0);
             motor.enableVoltageCompensation(true);
             motor.setNeutralMode(NeutralMode.Brake);
-            motor.configNominalOutputForward(1.0/12.0, 10);
-            motor.configNominalOutputReverse(-1.0/12.0, 10);
-            motor.configOpenloopRamp(0.2, 10);
-            motor.configClosedloopRamp(0.0, 10);
+            motor.configNominalOutputForward(1.0/12.0);
+            motor.configNominalOutputReverse(-1.0/12.0);
+            motor.configOpenloopRamp(0.2);
+            motor.configClosedloopRamp(0.0);
         }
 
         for(LazyTalonSRX master : masters) {
             master.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
-            master.setSelectedSensorPosition(0, 0, 10);
-            master.setStatusFramePeriod(StatusFrame.Status_2_Feedback0, 10, 10);
+            master.setSelectedSensorPosition(0, 0, 50);
+            //master.setStatusFramePeriod(StatusFrame.Status_2_Feedback0, 10, 10);
             master.configVelocityMeasurementPeriod(VelocityMeasPeriod.Period_10Ms, 10);
             master.configVelocityMeasurementWindow(32, 10);
             master.setSensorPhase(false); //TODO: set sensor direction
@@ -252,8 +252,8 @@ public class Drivetrain extends Subsystem {
             setBrakeMode(true);
             leftMaster.selectProfileSlot(0, 0);
             rightMaster.selectProfileSlot(0, 0);
-            leftMaster.configNeutralDeadband(0, 10);
-            rightMaster.configNeutralDeadband(0, 10);
+            leftMaster.configNeutralDeadband(0);
+            rightMaster.configNeutralDeadband(0);
             Limelight.getInstance().ledsOn(false);
             state = DriveControlState.PATH_FOLLOWING;
         }
@@ -291,8 +291,8 @@ public class Drivetrain extends Subsystem {
     }
     
     public synchronized void resetEncoders() {
-        leftMaster.setSelectedSensorPosition(0, 0, 10);
-        rightMaster.setSelectedSensorPosition(0, 0, 10);
+        leftMaster.setSelectedSensorPosition(0, 0, 50);
+        rightMaster.setSelectedSensorPosition(0, 0, 50);
         periodicIO = new PeriodicIO();
     }
 

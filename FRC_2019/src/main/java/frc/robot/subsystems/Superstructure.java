@@ -50,7 +50,7 @@ public class Superstructure extends Subsystem {
 
         robotState = RobotState.getInstance();
 
-        compressor = new Compressor(20);
+        compressor = new Compressor();
         compressor.setClosedLoopControl(true);
 
         queuedRequests = new ArrayList<>(0);
@@ -260,8 +260,8 @@ public class Superstructure extends Subsystem {
                             hatchMech.stateRequest(HatchMechanism.State.STOWED), intake.stateRequest(Intake.State.OFF)),
                     true);
             RequestList queue = new RequestList(Arrays.asList(hatchMech.stateRequest(HatchMechanism.State.SCORING),
-                    waitRequest(0.3), hatchMech.stateRequest(HatchMechanism.State.STOWED), waitRequest(0.2),
-                    elevator.heightRequest(ElevatorHeights.FIRST_LEVEL.hatchPosition)), false);
+                    waitRequest(0.3), hatchMech.stateRequest(HatchMechanism.State.FINGERS_EXTENDED_RETRACTED), waitRequest(0.15),
+                    hatchMech.stateRequest(HatchMechanism.State.STOWED), waitRequest(0.1), elevator.heightRequest(ElevatorHeights.DOWN.hatchPosition)), false);
             request(state);
             replaceQueue(queue);
         } else if (Intake.getInstance().hasCargo()) {
@@ -271,8 +271,7 @@ public class Superstructure extends Subsystem {
                     true);
             RequestList queue = new RequestList(Arrays.asList(intake.stateRequest(Intake.State.OUTAKE_ELEVATOR_UP),
                     waitRequest(0.3), intake.stateRequest(Intake.State.OFF),
-                    elevator.heightRequest(ElevatorHeights.FIRST_LEVEL.hatchPosition)), false);
-            request(state);
+                    elevator.heightRequest(ElevatorHeights.DOWN.hatchPosition)), false);
             replaceQueue(queue);
         }
 
@@ -293,22 +292,6 @@ public class Superstructure extends Subsystem {
             public boolean isFinished() {
                 return (Timer.getFPGATimestamp() - startTime) >= waitTime;
             }
-        };
-    }
-
-    public Request waitForVisionRequest() {
-        return new Request() {
-
-            @Override
-            public void act() {
-
-            }
-
-            @Override
-            public boolean isFinished() {
-                return robotState.seesTarget();
-            }
-
         };
     }
 }

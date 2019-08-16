@@ -27,6 +27,8 @@ import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.HatchMechanism.State;
 import frc.utils.CrashTracker;
 import frc.utils.CurvatureDrive;
+import frc.utils.TelemetryUtil;
+import frc.utils.TelemetryUtil.PrintStyle;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -46,14 +48,14 @@ public class Robot extends TimedRobot {
   private Intake intake;
   private HatchMechanism hatchMech;
 
-  private Superstructure s;
+ // private Superstructure s;
   private SubsystemManager subsystems;
-  private RobotState robotState = RobotState.getInstance();
+  //private RobotState robotState;
   private Limelight limelight;
 
   private AutoModeExecuter autoModeExecuter;
-  private TrajectoryGenerator trajectoryGenerator = TrajectoryGenerator.getInstance();
-  private SmartDashboardInteractions smartDashboardInteractions = new SmartDashboardInteractions();
+  private TrajectoryGenerator trajectoryGenerator;
+  private SmartDashboardInteractions smartDashboardInteractions;
 
   private Looper enabledLooper = new Looper();
   private Looper disabledLooper = new Looper();
@@ -64,13 +66,18 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() {
-    s = Superstructure.getInstance();
+    enabledLooper = new Looper();
+    disabledLooper = new Looper();
+
     drive = Drivetrain.getInstance();
     intake = Intake.getInstance();
     hatchMech = HatchMechanism.getInstance();
     elevator = elevator.getInstance();
-    subsystems = new SubsystemManager(Arrays.asList(drive, elevator, intake, hatchMech, s));
-
+    //s = Superstructure.getInstance();
+    //robotState = RobotState.getInstance();
+    //trajectoryGenerator = TrajectoryGenerator.getInstance();
+    curvatureDrive = new CurvatureDrive();
+    subsystems = new SubsystemManager(Arrays.asList(drive, elevator, intake, hatchMech)); 
     limelight = limelight.getInstance();
 
     driver = new Xbox(0);
@@ -84,14 +91,15 @@ public class Robot extends TimedRobot {
     drive.zeroSensors();
     elevator.zeroSensors();
 
+    smartDashboardInteractions = new SmartDashboardInteractions();
     smartDashboardInteractions.initWithDefaults();
 
-    trajectoryGenerator.generateTrajectories();
+    //trajectoryGenerator.generateTrajectories();
   }
 
   public void allPeriodic() {
     subsystems.outputToSmartDashboard();
-    robotState.outputToSmartDashboard();
+    //robotState.outputToSmartDashboard();
     enabledLooper.outputToSmartDashboard();
   }
 
@@ -167,7 +175,7 @@ public class Robot extends TimedRobot {
 
   private void driveWithTwoControllers() {
 
-    if (operator.backButton.isBeingPressed()) {
+   /* if (operator.backButton.isBeingPressed()) {
       if (operator.rightBumper.wasActivated()) {
         s.hatchRetrievingState();
       } else if (operator.aButton.wasActivated()) {
@@ -180,7 +188,7 @@ public class Robot extends TimedRobot {
         s.deployingState(Superstructure.ElevatorHeights.CARGO_SHIP);
       }
       return;
-    }
+    }*/
 
     
 
@@ -190,17 +198,18 @@ public class Robot extends TimedRobot {
     double turn = driver.getX(Hand.kLeft);
     boolean isQuickTurn = driver.getStartButton();
 
-    drive.setOpenLoop(curvatureDrive.curvatureDrive(driveThrottle, turn, isQuickTurn));
+    //drive.setOpenLoop(curvatureDrive.curvatureDrive(driveThrottle, turn, isQuickTurn));
 
-    boolean elevatorUp = elevator.getHeight() > 5;
+    boolean elevatorUp = false;//elevator.getHeight() > 5;
     boolean hasCargo = intake.hasCargo();
     boolean hasHatch = hatchMech.hasHatch();
-
+    
     /**
      * The following series of nested if statements is the control logic behind
      * setting the appropriate state of the intake state machine as determined by
      * operator gamepad
      */
+
 
     if (operator.dpadUp.wasActivated() || elevatorUp || hasCargo || hasHatch) {
       areKebabsDown = false;
@@ -253,6 +262,25 @@ public class Robot extends TimedRobot {
      * drive method because this function has utility in auto programs as well
      */
 
+    
+
+    /*if (hasCargo) {
+      hatchMech.conformToState(HatchMechanism.State.STOWED);
+    } else {
+      if (driver.rightBumper.wasActivated()) {
+        hatchMech.conformToState(HatchMechanism.State.RECIEVING);
+      } else if (driver.leftBumper.wasActivated()) {
+        hatchMech.conformToState(HatchMechanism.State.SCORING);
+      } else if (hatchMech.getState() == HatchMechanism.State.STOWED
+          || hatchMech.getState() == HatchMechanism.State.FINGERS_STOWED_EXTENDED) {
+        if (operator.startButton.isBeingPressed()) {
+          hatchMech.conformToState(State.FINGERS_STOWED_EXTENDED);
+        } else {
+          hatchMech.conformToState(State.STOWED);
+        }
+      }
+    }*/
+
     if (hasCargo) {
       hatchMech.conformToState(HatchMechanism.State.STOWED);
     } else {
@@ -275,7 +303,7 @@ public class Robot extends TimedRobot {
      * machine as determined by operator gamepad
      */
 
-    double manualControlJoystick = operator.getX(Hand.kLeft);
+    /*double manualControlJoystick = operator.getX(Hand.kLeft);
 
     if (manualControlJoystick != 0) {
       elevator.setOpenLoop(manualControlJoystick);
@@ -291,7 +319,7 @@ public class Robot extends TimedRobot {
       elevator.setTargetHeight(Superstructure.ElevatorHeights.DOWN.getHeight());
     } else if (elevator.isOpenLoop() || elevator.hasReachedTargetHeight()) {
       elevator.lockHeight();
-    }
+    }*/
 
   }
 

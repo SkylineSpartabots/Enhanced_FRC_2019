@@ -14,7 +14,8 @@ public class Constants {
 
     public final static double kLooperDt = 0.02;
 
-    public final static int BEAM_BREAK_THRESHOLD = 0;
+	public final static int BEAM_BREAK_THRESHOLD = 50;
+	public final static int HATCH_DISTANCE_THRESHOLD = 40;
 
     public final static boolean showDebugOutput = false;
 

@@ -7,6 +7,7 @@
 
 package frc.robot.subsystems;
 
+import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.drivers.LazySolenoid;
@@ -15,6 +16,8 @@ import frc.robot.Ports;
 import frc.robot.loops.ILooper;
 import frc.robot.loops.Loop;
 import frc.robot.subsystems.requests.Request;
+import frc.utils.TelemetryUtil;
+import frc.utils.TelemetryUtil.PrintStyle;
 
 /**
  * Add your docs here.
@@ -29,14 +32,13 @@ public class HatchMechanism extends Subsystem {
     }
 
     private LazySolenoid slider, fingers, jacks;
-    private DigitalInput hatchLimitSwitch;
-
+    private AnalogInput hatchDistanceSensor;
 
     private HatchMechanism() {
         slider = new LazySolenoid(Ports.SLIDER_SOLENOID);
         fingers = new LazySolenoid(Ports.FINGERS_SOLENOID);
         jacks = new LazySolenoid(Ports.JACKS_SOLENOID);
-        hatchLimitSwitch = new DigitalInput(Ports.HATCH_LIMIT_SWITCH);
+        hatchDistanceSensor = new AnalogInput(Ports.HATCH_DISTANCE_SENSOR);
     }
 
     public enum State {
@@ -118,33 +120,22 @@ public class HatchMechanism extends Subsystem {
 
         @Override
         public void onLoop(double timestamp) {
-            switch(currentState) {
-                case STOWED:
-                    break;
-                case FINGERS_STOWED_EXTENDED:
-                    break;
-                default:
-                    if(hatchLimitSwitch.get()) {
-                        if(Double.isInfinite(limitSwitchBeganTimestamp)) {
-                            limitSwitchBeganTimestamp = timestamp;  
-                        } else {
-                            if(timestamp - limitSwitchBeganTimestamp >= 0.0) {
-                                hasHatch = true;
-                            }
-                        }
-                    } else if (Double.isFinite(limitSwitchBeganTimestamp)) {
-                        limitSwitchBeganTimestamp = Double.POSITIVE_INFINITY;
-                        hasHatch = false;
+
+            if(hatchDistanceSensor.getValue() > Constants.HATCH_DISTANCE_THRESHOLD) {
+                if(Double.isInfinite(limitSwitchBeganTimestamp)) {
+                    limitSwitchBeganTimestamp = timestamp;  
+                } else {
+                    if(timestamp - limitSwitchBeganTimestamp >= 0) {
+                        hasHatch = true;
                     }
-                    if(currentState == State.RECIEVING && hasHatch) {
-                        conformToState(State.STOWED);
-                    }
-                    break;
+                }
+            } else if (!Double.isInfinite(limitSwitchBeganTimestamp)) {
+                limitSwitchBeganTimestamp = Double.POSITIVE_INFINITY;
+                hasHatch = false;
             }
-
-
-            if(stateChanged) {
-                stateChanged = false;
+            if(currentState == State.RECIEVING && hasHatch) {
+                TelemetryUtil.print("STOWING FOR HATCH", PrintStyle.INFO);
+                conformToState(State.STOWED);
             }
 
         }
@@ -163,15 +154,19 @@ public class HatchMechanism extends Subsystem {
 
     @Override
     public void outputTelemetry() {
+        SmartDashboard.putBoolean("Fingers State", fingers.get());
+            SmartDashboard.putBoolean("Slider State", slider.get());
+            SmartDashboard.putBoolean("Jacks State", jacks.get());
+            SmartDashboard.putNumber("Raw Distance Sensor", hatchDistanceSensor.getValue());
+            SmartDashboard.putBoolean("Has hatch", hasHatch());
         if(Constants.showDebugOutput) {
             SmartDashboard.putBoolean("Fingers State", fingers.get());
             SmartDashboard.putBoolean("Slider State", slider.get());
             SmartDashboard.putBoolean("Jacks State", jacks.get());
-            SmartDashboard.putBoolean("Raw Hatch Switch", hatchLimitSwitch.get());
         }
     }
 
-    @Override
+    @Override   
     public void stop() {
 
     }
