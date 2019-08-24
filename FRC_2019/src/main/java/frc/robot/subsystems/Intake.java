@@ -22,11 +22,10 @@ import frc.drivers.LazySolenoid;
 import frc.drivers.LazyTalonSRX;
 import frc.robot.Constants;
 import frc.robot.Ports;
+import frc.robot.auto.SmartDashboardInteractions;
 import frc.robot.loops.ILooper;
 import frc.robot.loops.Loop;
 import frc.robot.subsystems.requests.Request;
-import frc.utils.TelemetryUtil;
-import frc.utils.TelemetryUtil.PrintStyle;
 
 /**
  * Intake state machine
@@ -34,11 +33,13 @@ import frc.utils.TelemetryUtil.PrintStyle;
 public class Intake extends Subsystem {
 
     private static Intake instance = null;
+
     public static Intake getInstance() {
-        if(instance == null) 
+        if (instance == null)
             instance = new Intake();
         return instance;
     }
+
 
     private LazyTalonSRX innerIntakeMotor, masterKebab, slaveKebab;
     private List<LazyTalonSRX> motors;
@@ -58,7 +59,7 @@ public class Intake extends Subsystem {
 
         motors = Arrays.asList(innerIntakeMotor, masterKebab, slaveKebab);
 
-        for(LazyTalonSRX motor : motors) {
+        for (LazyTalonSRX motor : motors) {
             motor.setNeutralMode(NeutralMode.Brake);
             motor.configVoltageCompSaturation(12.0);
             motor.enableVoltageCompensation(true);
@@ -74,16 +75,14 @@ public class Intake extends Subsystem {
 
         setCurrentLimits(30);
 
-
         kebabSolenoid = new LazySolenoid(Ports.KEBAB_SOLENOID);
-        
 
         beamBreak = new AnalogInput(Ports.BEAM_BREAK);
 
     }
 
     public void setCurrentLimits(int amps) {
-        for(LazyTalonSRX motor : motors) {
+        for (LazyTalonSRX motor : motors) {
             motor.configContinuousCurrentLimit(amps);
             motor.configPeakCurrentLimit(amps);
             motor.configPeakCurrentDuration(10);
@@ -92,11 +91,11 @@ public class Intake extends Subsystem {
     }
 
     private void setRampRate(double secondsToMax) {
-        for(LazyTalonSRX motor : motors) {
+        for (LazyTalonSRX motor : motors) {
             motor.configOpenloopRamp(secondsToMax, 0);
         }
     }
-    
+
     /**
      * 
      * @return true if there is a cargo and falso if there is not a cargo
@@ -105,20 +104,18 @@ public class Intake extends Subsystem {
         return beamBreak.getValue() < Constants.BEAM_BREAK_THRESHOLD;
     }
 
-
-    //TODO: add idle
     public enum State {
-        OFF(0.0, 0.0, false),
-        HOLDING(0.0, 0.0, false),
-        CARGO_PHOBIC(0.0, 0.0, false),
+        OFF(0.0, 0.0, false), 
+        HOLDING(0.0, 0.0, false), 
+        CARGO_PHOBIC(0.0, 0.0, false), 
         IDLE_WITH_KEBABS(0.0, 0.0, true),
-        INTAKE_WITH_KEBABS(0.75, 0.75, true),
+        INTAKE_WITH_KEBABS(0.75, 0.75, true), 
         OUTAKE_WITH_KEBABS(-0.7, -0.7, true),
         INTAKE_WITHOUT_KEBABS(0.75, 0, false),
         OUTAKE_WITHOUT_KEBABS(-0.7, 0, false),
         INTAKE_ELEVATOR_UP(0.3, 0, false),
         OUTAKE_ELEVATOR_UP(-0.6, 0, false);
-        
+
         public double innerIntakeSpeed = 0.0;
         public double kebabSpeed = 0.0;
         public boolean deployKebabs = false;
@@ -140,20 +137,10 @@ public class Intake extends Subsystem {
     }
 
     private synchronized void setState(State newState) {
-        if(newState != currentState) 
+        if (newState != currentState)
             stateChanged = true;
         currentState = newState;
         stateEnteredTimestamp = Timer.getFPGATimestamp();
-    }
-
-    private boolean needsToNotifyDrivers = false;
-
-    public boolean needsToNotifyDrivers() {
-        if(needsToNotifyDrivers) {
-            needsToNotifyDrivers = false;
-            return true;
-        }
-        return false;
     }
 
     public synchronized void setInnerIntakeSpeed(double output) {
@@ -181,6 +168,7 @@ public class Intake extends Subsystem {
 
         @Override
         public void onLoop(double timestamp) {
+        if(!SmartDashboardInteractions.cargoSensorOverride.get()) {
             switch(currentState) {
                 case OFF:
                     break;
@@ -192,7 +180,6 @@ public class Intake extends Subsystem {
                     break;
                 case HOLDING:
                     hasCargo = true;
-                    TelemetryUtil.print("Is Holding!!", PrintStyle.INFO);
                     if(!isCargoFromSensor()) {
                         setInnerIntakeSpeed(0.5);
                     } else {
@@ -224,7 +211,11 @@ public class Intake extends Subsystem {
                         beamBreakSensorBeganTimestamp = Double.POSITIVE_INFINITY;
                     }
                     break;
+                }
+            } else {
+                hasCargo = false;
             }
+            
         }
 
         @Override
@@ -240,14 +231,14 @@ public class Intake extends Subsystem {
         deployKebabs(desiredState.deployKebabs);
         setKebabSpeed(desiredState.kebabSpeed);
 
-        if(!(desiredState == State.CARGO_PHOBIC || desiredState == State.HOLDING)) {
+        if (!(desiredState == State.CARGO_PHOBIC || desiredState == State.HOLDING)) {
             setInnerIntakeSpeed(desiredState.innerIntakeSpeed);
         }
-        
+
     }
 
     public Request stateRequest(State desiredState) {
-        return new Request(){
+        return new Request() {
             @Override
             public void act() {
                 conformToState(desiredState);
@@ -256,7 +247,7 @@ public class Intake extends Subsystem {
     }
 
     public Request waitForCargoRequest() {
-        return new Request(){
+        return new Request() {
             @Override
             public void act() {
                 conformToState(State.INTAKE_WITH_KEBABS);
@@ -268,7 +259,6 @@ public class Intake extends Subsystem {
             }
         };
     }
-
 
     @Override
     public void outputTelemetry() {
@@ -285,21 +275,30 @@ public class Intake extends Subsystem {
         SmartDashboard.putNumber("Left Kebab Current", slaveKebab.getOutputCurrent());
         SmartDashboard.putNumber("Left Kebab Voltage", slaveKebab.getMotorOutputVoltage());
         SmartDashboard.putNumber("Left Kebab Output", slaveKebab.getMotorOutputPercent());
-        
 
-        /*if(Constants.showDebugOutput) {
-            SmartDashboard.putNumber("Inner Intake Current", innerIntakeMotor.getOutputCurrent());
-            SmartDashboard.putNumber("Inner Intake Voltage", innerIntakeMotor.getMotorOutputVoltage());
-            SmartDashboard.putNumber("Inner Intake Output", innerIntakeMotor.getMotorOutputPercent());
-
-            SmartDashboard.putNumber("Right Kebab Current", masterKebab.getOutputCurrent());
-            SmartDashboard.putNumber("Right Kebab Voltage", masterKebab.getMotorOutputVoltage());
-            SmartDashboard.putNumber("Right Kebab Output", masterKebab.getMotorOutputPercent());
-
-            SmartDashboard.putNumber("Left Kebab Current", slaveKebab.getOutputCurrent());
-            SmartDashboard.putNumber("Left Kebab Voltage", slaveKebab.getMotorOutputVoltage());
-            SmartDashboard.putNumber("Left Kebab Output", slaveKebab.getMotorOutputPercent());
-        }*/
+        /*
+         * if(Constants.showDebugOutput) {
+         * SmartDashboard.putNumber("Inner Intake Current",
+         * innerIntakeMotor.getOutputCurrent());
+         * SmartDashboard.putNumber("Inner Intake Voltage",
+         * innerIntakeMotor.getMotorOutputVoltage());
+         * SmartDashboard.putNumber("Inner Intake Output",
+         * innerIntakeMotor.getMotorOutputPercent());
+         * 
+         * SmartDashboard.putNumber("Right Kebab Current",
+         * masterKebab.getOutputCurrent());
+         * SmartDashboard.putNumber("Right Kebab Voltage",
+         * masterKebab.getMotorOutputVoltage());
+         * SmartDashboard.putNumber("Right Kebab Output",
+         * masterKebab.getMotorOutputPercent());
+         * 
+         * SmartDashboard.putNumber("Left Kebab Current",
+         * slaveKebab.getOutputCurrent());
+         * SmartDashboard.putNumber("Left Kebab Voltage",
+         * slaveKebab.getMotorOutputVoltage());
+         * SmartDashboard.putNumber("Left Kebab Output",
+         * slaveKebab.getMotorOutputPercent()); }
+         */
     }
 
     @Override

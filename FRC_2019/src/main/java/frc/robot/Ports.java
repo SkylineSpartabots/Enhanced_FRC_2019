@@ -26,9 +26,9 @@ public class Ports {
     public final static int HATCH_DISTANCE_SENSOR = 3;
 
     //Elevator Ports
-    public final static int RIGHT_ELEVATOR_MOTOR = 5;
+    public final static int RIGHT_ELEVATOR_MOTOR = 7;
     public final static int LEFT_ELEVATOR_MOTOR = 14;
-    public static final int ELEVATOR_LIMIT_SWITCH = 0;
+    public static final int ELEVATOR_LIMIT_SWITCH = 9;
     
     //Drivetrain Ports
 	public static final int DRIVE_RIGHT_CENTER = 3;

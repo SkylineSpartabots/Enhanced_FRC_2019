@@ -7,6 +7,11 @@
 
 package frc.robot.auto;
 
+
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.auto.modes.CargoToRocket;
@@ -30,7 +35,14 @@ public class SmartDashboardInteractions {
     private SendableChooser<AutoOption> modeChooser;
     private SendableChooser<DriveStation> driveStationChooser;
     private SendableChooser<Alliance> allianceChooser;
-    
+
+    private static final ShuffleboardTab OVERRIDES_TAB = Shuffleboard.getTab("Overrides");
+    private static final ShuffleboardTab CONSTANTS_TAB = Shuffleboard.getTab("Constants");
+    public static DashboardOverride cargoSensorOverride, hatchSensorOverride, elevatorEncoderOverride,
+        elevatorLimitSwitchOverride, curvatureDriveOverride;
+
+    public static MotionProfileContantsWriter elevatorAscentConstants, elevatorDescentConstants;
+
     public void initWithDefaults() {
         modeChooser = new SendableChooser<AutoOption>();
         modeChooser.setDefaultOption(DEFAULT_MODE.name, DEFAULT_MODE);
@@ -47,6 +59,15 @@ public class SmartDashboardInteractions {
         allianceChooser = new SendableChooser<Alliance>();
         allianceChooser.setDefaultOption("Blue", Alliance.BLUE);
         allianceChooser.addOption("Red", Alliance.RED);
+
+        cargoSensorOverride = new DashboardOverride("Cargo Sensor");
+        hatchSensorOverride = new DashboardOverride("Hatch Sensor");
+        elevatorEncoderOverride = new DashboardOverride("Elevator Encoder");
+        elevatorLimitSwitchOverride = new DashboardOverride("Elevator Limit Switch");
+        curvatureDriveOverride = new DashboardOverride("Curvature Drive");
+
+        elevatorAscentConstants = new MotionProfileContantsWriter("Ascent");
+        elevatorDescentConstants = new MotionProfileContantsWriter("Descent");
 
         SmartDashboard.putData("Auto Chooser", modeChooser);
         SmartDashboard.putData("Drive Station Chooser", driveStationChooser);
@@ -103,7 +124,6 @@ public class SmartDashboardInteractions {
     }
 
     public enum AutoOption {
-
         DOUBLE_ROCKET_SHIP("Double Rocket Ship"),
         CLOSE_CARGO_TO_ROCKET("One Close Cargoship, One Rocket"),
         DOUBLE_CARGO_SHIP("One Close Cargoship, One Side Cargoship"),
@@ -114,6 +134,93 @@ public class SmartDashboardInteractions {
         private AutoOption(String name) {
             this.name = name;
         }
+    }
+
+
+    public class MotionProfileContantsWriter {
+        private NetworkTableEntry kPEntry, kIEntry, kDEntry, kFEntry,
+            velocityEntry, accelerationEntry;
+        private String name;
+        
+        public MotionProfileContantsWriter(String name) {
+            this.name = name;
+            kPEntry = CONSTANTS_TAB.add(name + "_kP", 0.0).withWidget(BuiltInWidgets.kTextView).getEntry();
+            kIEntry = CONSTANTS_TAB.add(name + "_kI", 0.0).withWidget(BuiltInWidgets.kTextView).getEntry();
+            kDEntry = CONSTANTS_TAB.add(name + "_kD", 0.0).withWidget(BuiltInWidgets.kTextView).getEntry();
+            kFEntry = CONSTANTS_TAB.add(name + "_kF", 0.0).withWidget(BuiltInWidgets.kTextView).getEntry();
+            velocityEntry = CONSTANTS_TAB.add(name + "_velocity", 0.0).withWidget(BuiltInWidgets.kTextView).getEntry();
+            accelerationEntry = CONSTANTS_TAB.add(name + "_acceleration", 0.0).withWidget(BuiltInWidgets.kTextView).getEntry();
+        }
+
+        public double getkP() {
+            double kP = kPEntry.getDouble(0);
+            TelemetryUtil.print(name + "_kP:\t" + kP, PrintStyle.WARNING);
+            return kP;
+        }
+
+        public double getkI() {
+            double kI = kIEntry.getDouble(0);
+            TelemetryUtil.print(name + "_kI:\t" + kI, PrintStyle.WARNING);
+            return kI;
+        }
+
+        public double getkD() {
+            double kD = kDEntry.getDouble(0);
+            TelemetryUtil.print(name + "_kD:\t" + kD, PrintStyle.WARNING);
+            return kD;
+        }
+
+        public double getkF() {
+            double kF = kFEntry.getDouble(0);
+            TelemetryUtil.print(name + "_kF:\t" + kF, PrintStyle.WARNING);
+            return kF;
+        }
+
+        public int getVelocity() {
+            int velocity = (int) velocityEntry.getDouble(0);
+            TelemetryUtil.print(name + "_velocity:\t" + velocity, PrintStyle.WARNING);
+            return velocity;
+        }
+
+        public int getAcceleration() {
+            int acceleration = (int) accelerationEntry.getDouble(0);
+            TelemetryUtil.print(name + "_acceleration:\t" + acceleration, PrintStyle.WARNING);
+            return acceleration;
+        }
+    }
+
+    
+    public class DashboardOverride {
+        private boolean isOverriden;
+        private boolean prevOverrideState;
+        private NetworkTableEntry networkTableEntry;
+
+        public DashboardOverride(String name) {
+            this(name, false);
+        }
+
+        public DashboardOverride(String name, boolean defaultState) {
+            networkTableEntry = OVERRIDES_TAB.add(name, defaultState).withWidget(BuiltInWidgets.kToggleSwitch).getEntry(); 
+            isOverriden = defaultState;
+        }
+
+        public void update() {
+            prevOverrideState = isOverriden;
+            isOverriden = networkTableEntry.getBoolean(false);
+        }
+
+        public boolean wasOverriden() {
+            return prevOverrideState == false && isOverriden == true;
+        }
+
+        public boolean get() {
+            return isOverriden;
+        }
+
+        public void set(boolean state) {
+            networkTableEntry.setBoolean(state);
+        }
+
     }
 
 

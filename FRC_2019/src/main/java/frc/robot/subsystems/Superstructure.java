@@ -37,9 +37,6 @@ public class Superstructure extends Subsystem {
     private HatchMechanism hatchMech;
     private Elevator elevator;
     private Drivetrain drive;
-
-    private RobotState robotState;
-
     private Compressor compressor;
 
     private Superstructure() {
@@ -47,8 +44,6 @@ public class Superstructure extends Subsystem {
         hatchMech = HatchMechanism.getInstance();
         elevator = Elevator.getInstance();
         drive = Drivetrain.getInstance();
-
-        robotState = RobotState.getInstance();
 
         compressor = new Compressor();
         compressor.setClosedLoopControl(true);
@@ -58,7 +53,7 @@ public class Superstructure extends Subsystem {
     }
 
     public enum ElevatorHeights {
-        DOWN(0, 0), FIRST_LEVEL(0, 0), SECOND_LEVEL(0, 0), THIRD_LEVEL(0, 0), CARGO_SHIP(0, 0);
+        DOWN(0, 0), FIRST_LEVEL(300, 300), SECOND_LEVEL(0, 0), THIRD_LEVEL(0, 0), CARGO_SHIP(0, 0);
 
         public double hatchPosition;
         public double cargoPosition;

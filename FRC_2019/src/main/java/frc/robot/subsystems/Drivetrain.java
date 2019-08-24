@@ -94,8 +94,8 @@ public class Drivetrain extends Subsystem {
         rightSlaveA.set(ControlMode.Follower, Ports.DRIVE_RIGHT_CENTER);
         rightSlaveB.set(ControlMode.Follower, Ports.DRIVE_RIGHT_CENTER);
 
-        leftMaster.setInverted(InvertType.None);
-        rightMaster.setInverted(InvertType.InvertMotorOutput);
+        leftMaster.setInverted(InvertType.InvertMotorOutput);
+        rightMaster.setInverted(InvertType.None);
         slaves.forEach((s) -> s.setInverted(InvertType.FollowMaster));
 
         for(LazyTalonSRX motor : motors) {

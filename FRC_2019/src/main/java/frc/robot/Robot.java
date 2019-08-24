@@ -48,7 +48,7 @@ public class Robot extends TimedRobot {
   private Intake intake;
   private HatchMechanism hatchMech;
 
- // private Superstructure s;
+ private Superstructure s;
   private SubsystemManager subsystems;
   //private RobotState robotState;
   private Limelight limelight;
@@ -68,6 +68,9 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     enabledLooper = new Looper();
     disabledLooper = new Looper();
+
+    smartDashboardInteractions = new SmartDashboardInteractions();
+    smartDashboardInteractions.initWithDefaults();
 
     drive = Drivetrain.getInstance();
     intake = Intake.getInstance();
@@ -91,8 +94,7 @@ public class Robot extends TimedRobot {
     drive.zeroSensors();
     elevator.zeroSensors();
 
-    smartDashboardInteractions = new SmartDashboardInteractions();
-    smartDashboardInteractions.initWithDefaults();
+    
 
     //trajectoryGenerator.generateTrajectories();
   }
@@ -160,6 +162,12 @@ public class Robot extends TimedRobot {
   }
 
   @Override
+  public void disabledInit() {
+    enabledLooper.stop();
+    disabledLooper.start();
+  }
+
+  @Override
   public void testInit() {
   }
 
@@ -175,7 +183,7 @@ public class Robot extends TimedRobot {
 
   private void driveWithTwoControllers() {
 
-   /* if (operator.backButton.isBeingPressed()) {
+    if (operator.backButton.isBeingPressed()) {
       if (operator.rightBumper.wasActivated()) {
         s.hatchRetrievingState();
       } else if (operator.aButton.wasActivated()) {
@@ -188,7 +196,7 @@ public class Robot extends TimedRobot {
         s.deployingState(Superstructure.ElevatorHeights.CARGO_SHIP);
       }
       return;
-    }*/
+    }
 
     
 
@@ -196,21 +204,25 @@ public class Robot extends TimedRobot {
 
     double driveThrottle = driver.getY(Hand.kRight);
     double turn = driver.getX(Hand.kLeft);
-    boolean isQuickTurn = driver.getStartButton();
-
-    //drive.setOpenLoop(curvatureDrive.curvatureDrive(driveThrottle, turn, isQuickTurn));
-
+    
+    if(SmartDashboardInteractions.curvatureDriveOverride.get()) {
+      //regular arcade drive
+    } else {
+      boolean isQuickTurn = driver.getStartButton();
+      //drive.setOpenLoop(curvatureDrive.curvatureDrive(driveThrottle, turn, isQuickTurn));
+    }
+    
     boolean elevatorUp = false;//elevator.getHeight() > 5;
     boolean hasCargo = intake.hasCargo();
     boolean hasHatch = hatchMech.hasHatch();
-    
+  
     /**
      * The following series of nested if statements is the control logic behind
      * setting the appropriate state of the intake state machine as determined by
      * operator gamepad
      */
 
-
+    
     if (operator.dpadUp.wasActivated() || elevatorUp || hasCargo || hasHatch) {
       areKebabsDown = false;
     } else if (operator.dpadDown.wasActivated()) {
@@ -262,29 +274,13 @@ public class Robot extends TimedRobot {
      * drive method because this function has utility in auto programs as well
      */
 
-    
-
-    /*if (hasCargo) {
-      hatchMech.conformToState(HatchMechanism.State.STOWED);
-    } else {
-      if (driver.rightBumper.wasActivated()) {
-        hatchMech.conformToState(HatchMechanism.State.RECIEVING);
-      } else if (driver.leftBumper.wasActivated()) {
-        hatchMech.conformToState(HatchMechanism.State.SCORING);
-      } else if (hatchMech.getState() == HatchMechanism.State.STOWED
-          || hatchMech.getState() == HatchMechanism.State.FINGERS_STOWED_EXTENDED) {
-        if (operator.startButton.isBeingPressed()) {
-          hatchMech.conformToState(State.FINGERS_STOWED_EXTENDED);
-        } else {
-          hatchMech.conformToState(State.STOWED);
-        }
-      }
-    }*/
 
     if (hasCargo) {
       hatchMech.conformToState(HatchMechanism.State.STOWED);
     } else {
-      if (driver.rightBumper.wasActivated()) {
+      if(driver.backButton.wasActivated()) {
+        hatchMech.conformToState(HatchMechanism.State.STOWED);
+      } else if (driver.rightBumper.wasActivated()) {
         hatchMech.conformToState(HatchMechanism.State.RECIEVING);
       } else if (driver.leftBumper.wasActivated()) {
         hatchMech.conformToState(HatchMechanism.State.SCORING);
@@ -303,7 +299,8 @@ public class Robot extends TimedRobot {
      * machine as determined by operator gamepad
      */
 
-    /*double manualControlJoystick = operator.getX(Hand.kLeft);
+ 
+    double manualControlJoystick = operator.getY(Hand.kRight);
 
     if (manualControlJoystick != 0) {
       elevator.setOpenLoop(manualControlJoystick);
@@ -319,7 +316,7 @@ public class Robot extends TimedRobot {
       elevator.setTargetHeight(Superstructure.ElevatorHeights.DOWN.getHeight());
     } else if (elevator.isOpenLoop() || elevator.hasReachedTargetHeight()) {
       elevator.lockHeight();
-    }*/
+    }
 
   }
 

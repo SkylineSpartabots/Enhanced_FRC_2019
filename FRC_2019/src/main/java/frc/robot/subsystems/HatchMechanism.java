@@ -8,16 +8,14 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.AnalogInput;
-import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.drivers.LazySolenoid;
 import frc.robot.Constants;
 import frc.robot.Ports;
+import frc.robot.auto.SmartDashboardInteractions;
 import frc.robot.loops.ILooper;
 import frc.robot.loops.Loop;
 import frc.robot.subsystems.requests.Request;
-import frc.utils.TelemetryUtil;
-import frc.utils.TelemetryUtil.PrintStyle;
 
 /**
  * Add your docs here.
@@ -25,8 +23,9 @@ import frc.utils.TelemetryUtil.PrintStyle;
 public class HatchMechanism extends Subsystem {
 
     private static HatchMechanism instance = null;
+
     public static HatchMechanism getInstance() {
-        if(instance == null) 
+        if (instance == null)
             instance = new HatchMechanism();
         return instance;
     }
@@ -42,12 +41,12 @@ public class HatchMechanism extends Subsystem {
     }
 
     public enum State {
-        SCORING(true, true, true),
-        RECIEVING(true, true, false),
+        SCORING(true, true, true), 
+        RECIEVING(true, true, false), 
         STOWED(false, false, false),
-        FINGERS_STOWED_EXTENDED(false, true, false),
+        FINGERS_STOWED_EXTENDED(false, true, false), 
         FINGERS_EXTENDED_RETRACTED(true, false, false);
-        
+
         public boolean fingersExtended;
         public boolean sliderExtended;
         public boolean jacksExtended;
@@ -60,21 +59,22 @@ public class HatchMechanism extends Subsystem {
     }
 
     private State currentState = State.STOWED;
+
     public State getState() {
         return currentState;
     }
 
     private synchronized void setState(State newState) {
-        if(newState != currentState) 
+        if (newState != currentState)
             stateChanged = true;
         currentState = newState;
     }
 
-
     private boolean stateChanged = false;
-    private double limitSwitchBeganTimestamp = Double.POSITIVE_INFINITY;
-
+    private double distanceSensorBeganTimestamp = Double.POSITIVE_INFINITY;
+    private double scoringStateBeganTimestamp = 0;
     private boolean hasHatch = false;
+
     public boolean hasHatch() {
         return hasHatch;
     }
@@ -82,13 +82,19 @@ public class HatchMechanism extends Subsystem {
     public void conformToState(State desiredState) {
         fingers.set(desiredState.fingersExtended);
         slider.set(desiredState.sliderExtended);
-        jacks.set(desiredState.jacksExtended);
+        if(desiredState != State.SCORING) {
+            jacks.set(desiredState.jacksExtended);
+        }
         setState(desiredState);
     }
 
+    private boolean hasHatchFromSensor() {
+        return hatchDistanceSensor.getValue() < Constants.HATCH_DISTANCE_THRESHOLD;
+    }
+
     public Request stateRequest(State newState) {
-        return new Request(){
-        
+        return new Request() {
+
             @Override
             public void act() {
                 conformToState(newState);
@@ -97,11 +103,11 @@ public class HatchMechanism extends Subsystem {
     }
 
     public Request waitForHatchRequest() {
-        return new Request(){
-        
+        return new Request() {
+
             @Override
             public void act() {
-                
+
             }
 
             @Override
@@ -121,23 +127,44 @@ public class HatchMechanism extends Subsystem {
         @Override
         public void onLoop(double timestamp) {
 
-            if(hatchDistanceSensor.getValue() > Constants.HATCH_DISTANCE_THRESHOLD) {
-                if(Double.isInfinite(limitSwitchBeganTimestamp)) {
-                    limitSwitchBeganTimestamp = timestamp;  
+            if (!SmartDashboardInteractions.hatchSensorOverride.get()) {
+                if (currentState == State.STOWED) {
+                    if (stateChanged) {
+                        hasHatch = hasHatchFromSensor();
+                    }
                 } else {
-                    if(timestamp - limitSwitchBeganTimestamp >= 0) {
-                        hasHatch = true;
+                    if (hasHatchFromSensor()) {
+                        if (Double.isInfinite(distanceSensorBeganTimestamp)) {
+                            distanceSensorBeganTimestamp = timestamp;
+                        } else {
+                            if (timestamp - distanceSensorBeganTimestamp >= 0.1) {
+                                hasHatch = true;
+                            }
+                        }
+                    } else if (!Double.isInfinite(distanceSensorBeganTimestamp)) {
+                        distanceSensorBeganTimestamp = Double.POSITIVE_INFINITY;
+                        hasHatch = false;
+                    }
+                    if (currentState == State.RECIEVING && hasHatch) {
+                        conformToState(State.STOWED);
                     }
                 }
-            } else if (!Double.isInfinite(limitSwitchBeganTimestamp)) {
-                limitSwitchBeganTimestamp = Double.POSITIVE_INFINITY;
+            } else {
                 hasHatch = false;
             }
-            if(currentState == State.RECIEVING && hasHatch) {
-                TelemetryUtil.print("STOWING FOR HATCH", PrintStyle.INFO);
-                conformToState(State.STOWED);
+            
+            if(currentState == State.SCORING) {
+                if(stateChanged) {
+                    scoringStateBeganTimestamp = timestamp;
+                }
+                if(timestamp - scoringStateBeganTimestamp > 0.2) {
+                    jacks.set(true);
+                } else {
+                    jacks.set(false);
+                }
             }
 
+            stateChanged = false;
         }
 
         @Override
@@ -155,18 +182,18 @@ public class HatchMechanism extends Subsystem {
     @Override
     public void outputTelemetry() {
         SmartDashboard.putBoolean("Fingers State", fingers.get());
-            SmartDashboard.putBoolean("Slider State", slider.get());
-            SmartDashboard.putBoolean("Jacks State", jacks.get());
-            SmartDashboard.putNumber("Raw Distance Sensor", hatchDistanceSensor.getValue());
-            SmartDashboard.putBoolean("Has hatch", hasHatch());
-        if(Constants.showDebugOutput) {
+        SmartDashboard.putBoolean("Slider State", slider.get());
+        SmartDashboard.putBoolean("Jacks State", jacks.get());
+        SmartDashboard.putNumber("Raw Distance Sensor", hatchDistanceSensor.getValue());
+        SmartDashboard.putBoolean("Has hatch", hasHatch());
+        if (Constants.showDebugOutput) {
             SmartDashboard.putBoolean("Fingers State", fingers.get());
             SmartDashboard.putBoolean("Slider State", slider.get());
             SmartDashboard.putBoolean("Jacks State", jacks.get());
         }
     }
 
-    @Override   
+    @Override
     public void stop() {
 
     }
