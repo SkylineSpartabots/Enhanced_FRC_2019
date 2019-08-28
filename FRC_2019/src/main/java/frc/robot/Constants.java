@@ -20,13 +20,13 @@ public class Constants {
     public final static boolean showDebugOutput = false;
 
     //Elevator constants
-    public final static int elevatorEncoderStartingPosition = -40;
-    public final static int maxElevatorHeight = 0;
+    public final static int elevatorEncoderStartingPosition = 0;
+    public final static int maxElevatorHeight = 80;
     public final static int minElevatorHeight = 0;
     public final static int elevatorCurrentLimit = 40;
     public final static double elevatorHeightTolerance = 0.5;
     public final static double manualElevatorDriveProportion = 0.5;
-    public final static double elevatorTicksPerInch = 0;
+    public final static double elevatorTicksPerInch = 58.75;
 
 	public static final double maxElevatorInitialHeight = 0;
 

@@ -89,7 +89,7 @@ public class Elevator extends Subsystem {
 
         slave.set(ControlMode.Follower, Ports.LEFT_ELEVATOR_MOTOR);
 
-        master.setInverted(true);
+        master.setInverted(false);
         slave.setInverted(InvertType.OpposeMaster);
 
         for (LazyTalonSRX motor : motors) {
@@ -99,14 +99,15 @@ public class Elevator extends Subsystem {
         }
 
         master.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
-        master.setSensorPhase(false);
+        master.setSensorPhase(true);
 
         master.configReverseSoftLimitThreshold(Constants.elevatorEncoderStartingPosition);
         //master.configForwardSoftLimitThreshold(
         //        Constants.elevatorEncoderStartingPosition + inchesToEncUnits(Constants.maxElevatorHeight), 10);
+        //4662 highest
         master.configForwardSoftLimitThreshold(500);
         master.configReverseSoftLimitEnable(true);
-        master.configForwardSoftLimitEnable(true);
+        master.configForwardSoftLimitEnable(false);
 
         setCurrentLimit(Constants.elevatorCurrentLimit);
 
@@ -152,10 +153,10 @@ public class Elevator extends Subsystem {
 
     private void configForDescent() {
         //if(configuredForAscent) {
-            master.config_kI(0, SmartDashboardInteractions.elevatorDescentConstants.getkI());
-            master.config_kD(0, SmartDashboardInteractions.elevatorDescentConstants.getkD());
-            master.config_kF(0, SmartDashboardInteractions.elevatorDescentConstants.getkF());
-            master.config_kP(0, SmartDashboardInteractions.elevatorDescentConstants.getkP());
+            master.config_kI(1, SmartDashboardInteractions.elevatorDescentConstants.getkI());
+            master.config_kD(1, SmartDashboardInteractions.elevatorDescentConstants.getkD());
+            master.config_kF(1, SmartDashboardInteractions.elevatorDescentConstants.getkF());
+            master.config_kP(1, SmartDashboardInteractions.elevatorDescentConstants.getkP());
             master.configMotionCruiseVelocity(SmartDashboardInteractions.elevatorDescentConstants.getVelocity());
             master.configMotionAcceleration(SmartDashboardInteractions.elevatorDescentConstants.getAcceleration());
             master.configMotionSCurveStrength(4);
@@ -174,13 +175,7 @@ public class Elevator extends Subsystem {
         return !elevatorLimitSwitch.get();
     }
 
-    public boolean isEncoderConnected() {
-        int pulseWidthPeriod = master.getSensorCollection().getPulseWidthRiseToRiseUs();
-        boolean connected = pulseWidthPeriod != 0;
-        if (!connected)
-            hasEmergency = true;
-        return connected;
-    }
+ 
 
     public void setOpenLoop(double input) {
         setState(ControlState.OpenLoop);
@@ -217,13 +212,15 @@ public class Elevator extends Subsystem {
 
     public synchronized void setTargetHeight(double heightInFeet) {
         setState(ControlState.Position);
+        TelemetryUtil.print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOON", PrintStyle.INFO);
         if (heightInFeet > Constants.maxElevatorHeight) {
             heightInFeet = Constants.maxElevatorHeight;
         } else if (heightInFeet < Constants.minElevatorHeight) {
             heightInFeet = Constants.minElevatorHeight;
         }
 
-        if (isEncoderConnected() && !SmartDashboardInteractions.elevatorEncoderOverride.get()) {
+        TelemetryUtil.print(SmartDashboardInteractions.elevatorAscentConstants.getkP(), PrintStyle.ERROR);
+        if (!SmartDashboardInteractions.elevatorEncoderOverride.get()) {
             if (heightInFeet > getHeight()) {
                 master.selectProfileSlot(0, 0);
                 configForAscent();
@@ -232,6 +229,7 @@ public class Elevator extends Subsystem {
                 configForDescent();
             }
             targetHeight = heightInFeet;
+            System.out.println(SmartDashboardInteractions.elevatorAscentConstants.getkP());
             periodicIO.demand = elevatorHeightToEncUnits(heightInFeet);
             onTarget = false;
             startTime = Timer.getFPGATimestamp();
@@ -257,7 +255,7 @@ public class Elevator extends Subsystem {
 
     public synchronized void lockHeight() {
         setState(ControlState.Locked);
-        if (isEncoderConnected() && !SmartDashboardInteractions.elevatorEncoderOverride.get()) {
+        if (!SmartDashboardInteractions.elevatorEncoderOverride.get()) {
             targetHeight = getHeight();
             periodicIO.demand = periodicIO.position;
         } else {
@@ -354,7 +352,7 @@ public class Elevator extends Subsystem {
 
     @Override
     public synchronized void writePeriodicOutputs() {
-        if(periodicIO.demand <= 0 && periodicIO.position <= 70) {
+        if(periodicIO.demand <= 0 && periodicIO.position <= 250) {
             if(getLimitSwitch()) {
                 master.set(ControlMode.PercentOutput, 0);
             } else {
@@ -403,7 +401,9 @@ public class Elevator extends Subsystem {
             SmartDashboard.putNumber("Right Elevator Voltage", master.getMotorOutputVoltage());
             SmartDashboard.putNumber("Left Elevator Voltage", slave.getMotorOutputVoltage());
         SmartDashboard.putNumber("Elevator Encoder", periodicIO.position);
+        SmartDashboard.putNumber("Elevator Height", getHeight());
         SmartDashboard.putBoolean("Elevator Limit Switch", getLimitSwitch());
+        
     }
 
     @Override

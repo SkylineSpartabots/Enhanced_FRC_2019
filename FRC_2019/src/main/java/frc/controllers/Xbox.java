@@ -90,9 +90,9 @@ public class Xbox extends XboxController {
     @Override
     public double getY(Hand hand) {
         if(hand.equals(Hand.kLeft)) {
-            return Util.deadBand(getRawAxis(LEFT_Y_AXIS), DEAD_BAND);
+            return -Util.deadBand(getRawAxis(LEFT_Y_AXIS), DEAD_BAND);
         } else {
-            return Util.deadBand(getRawAxis(RIGHT_Y_AXIS), DEAD_BAND);
+            return -Util.deadBand(getRawAxis(RIGHT_Y_AXIS), DEAD_BAND);
         }
     }
 

@@ -183,7 +183,7 @@ public class Robot extends TimedRobot {
 
   private void driveWithTwoControllers() {
 
-    if (operator.backButton.isBeingPressed()) {
+    /*if (operator.backButton.isBeingPressed()) {
       if (operator.rightBumper.wasActivated()) {
         s.hatchRetrievingState();
       } else if (operator.aButton.wasActivated()) {
@@ -196,7 +196,7 @@ public class Robot extends TimedRobot {
         s.deployingState(Superstructure.ElevatorHeights.CARGO_SHIP);
       }
       return;
-    }
+    }*/
 
     
 
@@ -307,15 +307,15 @@ public class Robot extends TimedRobot {
     } else if (operator.aButton.wasActivated()) {
       elevator.setTargetHeight(Superstructure.ElevatorHeights.FIRST_LEVEL.getHeight());
     } else if (operator.xButton.wasActivated()) {
-      elevator.setTargetHeight(Superstructure.ElevatorHeights.SECOND_LEVEL.getHeight());
+      //elevator.setTargetHeight(Superstructure.ElevatorHeights.SECOND_LEVEL.getHeight());
     } else if (operator.yButton.wasActivated()) {
-      elevator.setTargetHeight(Superstructure.ElevatorHeights.THIRD_LEVEL.getHeight());
+      //elevator.setTargetHeight(Superstructure.ElevatorHeights.THIRD_LEVEL.getHeight());
     } else if (operator.bButton.wasActivated()) {
-      elevator.setTargetHeight(Superstructure.ElevatorHeights.CARGO_SHIP.getHeight());
+      //elevator.setTargetHeight(Superstructure.ElevatorHeights.CARGO_SHIP.getHeight());
     } else if (operator.leftBumper.wasActivated()){
-      elevator.setTargetHeight(Superstructure.ElevatorHeights.DOWN.getHeight());
+      //elevator.setTargetHeight(Superstructure.ElevatorHeights.DOWN.getHeight());
     } else if (elevator.isOpenLoop() || elevator.hasReachedTargetHeight()) {
-      elevator.lockHeight();
+      //elevator.lockHeight();
     }
 
   }
