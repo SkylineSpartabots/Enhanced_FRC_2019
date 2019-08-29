@@ -105,9 +105,9 @@ public class Elevator extends Subsystem {
         //master.configForwardSoftLimitThreshold(
         //        Constants.elevatorEncoderStartingPosition + inchesToEncUnits(Constants.maxElevatorHeight), 10);
         //4662 highest
-        master.configForwardSoftLimitThreshold(500);
+        master.configForwardSoftLimitThreshold(4662);
         master.configReverseSoftLimitEnable(true);
-        master.configForwardSoftLimitEnable(false);
+        master.configForwardSoftLimitEnable(true);
 
         setCurrentLimit(Constants.elevatorCurrentLimit);
 
@@ -312,6 +312,8 @@ public class Elevator extends Subsystem {
         @Override
         public void onStart(double timestamp) {
             resetToAbsolutePosition();
+            setState(ControlState.OpenLoop);
+            targetHeight = 0;
         }
 
         @Override

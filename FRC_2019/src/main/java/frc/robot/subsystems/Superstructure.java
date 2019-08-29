@@ -267,6 +267,7 @@ public class Superstructure extends Subsystem {
             RequestList queue = new RequestList(Arrays.asList(intake.stateRequest(Intake.State.OUTAKE_ELEVATOR_UP),
                     waitRequest(0.3), intake.stateRequest(Intake.State.OFF),
                     elevator.heightRequest(ElevatorHeights.DOWN.hatchPosition)), false);
+            request(state);
             replaceQueue(queue);
         }
 
