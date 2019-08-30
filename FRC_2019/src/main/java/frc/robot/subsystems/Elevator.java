@@ -264,8 +264,11 @@ public class Elevator extends Subsystem {
         }
     }
 
-    public void getAntiTipCoeffecient() {
-        
+    public double getAntiTipCoeffecient() {
+        if(SmartDashboardInteractions.antiTipOverride.get()) {
+            return 1;
+        }
+        return Math.abs(1 - (periodicIO.position * -0.00010725));
     }
 
     public void resetToAbsolutePosition() {
@@ -313,6 +316,7 @@ public class Elevator extends Subsystem {
         public void onStart(double timestamp) {
             resetToAbsolutePosition();
             setState(ControlState.OpenLoop);
+            periodicIO.demand = 0;
             targetHeight = 0;
         }
 
@@ -405,6 +409,8 @@ public class Elevator extends Subsystem {
         SmartDashboard.putNumber("Elevator Encoder", periodicIO.position);
         SmartDashboard.putNumber("Elevator Height", getHeight());
         SmartDashboard.putBoolean("Elevator Limit Switch", getLimitSwitch());
+        SmartDashboard.putNumber("Demand", periodicIO.demand);
+        SmartDashboard.putNumber("Elevator Hard Setpoint", master.getClosedLoopTarget(0));
         
     }
 

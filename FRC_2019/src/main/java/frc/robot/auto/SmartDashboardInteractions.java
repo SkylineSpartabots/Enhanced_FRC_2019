@@ -39,7 +39,7 @@ public class SmartDashboardInteractions {
     private static final ShuffleboardTab OVERRIDES_TAB = Shuffleboard.getTab("Overrides");
     private static final ShuffleboardTab CONSTANTS_TAB = Shuffleboard.getTab("Constants");
     public static DashboardOverride cargoSensorOverride, hatchSensorOverride, elevatorEncoderOverride,
-        elevatorLimitSwitchOverride, curvatureDriveOverride;
+        elevatorLimitSwitchOverride, curvatureDriveOverride, antiTipOverride;
 
     public static MotionProfileContantsWriter elevatorAscentConstants, elevatorDescentConstants;
 
@@ -65,6 +65,7 @@ public class SmartDashboardInteractions {
         elevatorEncoderOverride = new DashboardOverride("Elevator Encoder");
         elevatorLimitSwitchOverride = new DashboardOverride("Elevator Limit Switch");
         curvatureDriveOverride = new DashboardOverride("Curvature Drive");
+        antiTipOverride = new DashboardOverride("Drive Anti-Tip");
 
         elevatorAscentConstants = new MotionProfileContantsWriter("Ascent");
         elevatorDescentConstants = new MotionProfileContantsWriter("Descent");

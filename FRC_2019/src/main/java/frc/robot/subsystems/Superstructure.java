@@ -53,7 +53,7 @@ public class Superstructure extends Subsystem {
     }
 
     public enum ElevatorHeights {
-        DOWN(0, 0), FIRST_LEVEL(12, 12), SECOND_LEVEL(0, 0), THIRD_LEVEL(0, 0), CARGO_SHIP(0, 0);
+        DOWN(0, 0), FIRST_LEVEL(0, 20.5), SECOND_LEVEL(28, 48.5), THIRD_LEVEL(56, 76.5), CARGO_SHIP(0, 40);
 
         public double hatchPosition;
         public double cargoPosition;
@@ -248,6 +248,16 @@ public class Superstructure extends Subsystem {
         request(state);
     }
 
+    public void requestTest() {
+        RequestList state = new RequestList(
+                    Arrays.asList(hatchMech.stateRequest(HatchMechanism.State.SCORING), intake.stateRequest(Intake.State.IDLE_WITH_KEBABS)),
+                    true);
+        RequestList queue = new RequestList(Arrays.asList(waitRequest(2), hatchMech.stateRequest(HatchMechanism.State.STOWED),
+                    waitRequest(2), intake.stateRequest(Intake.State.IDLE_WITH_KEBABS)), false);
+        request(state);
+        replaceQueue(queue);
+    }
+
     public void deployingState(ElevatorHeights height) {
         if (HatchMechanism.getInstance().hasHatch()) {
             RequestList state = new RequestList(
@@ -272,6 +282,8 @@ public class Superstructure extends Subsystem {
         }
 
     }
+
+    
 
     public Request waitRequest(double seconds) {
         return new Request() {

@@ -262,43 +262,26 @@ public class Intake extends Subsystem {
 
     @Override
     public void outputTelemetry() {
+        if(Constants.showDebugOutput) {
+            SmartDashboard.putBoolean("Has Cargo", hasCargo());
+            SmartDashboard.putBoolean("Raw Cargo", isCargoFromSensor());
+            SmartDashboard.putNumber("Inner Intake Current", innerIntakeMotor.getOutputCurrent());
+            SmartDashboard.putNumber("Inner Intake Voltage", innerIntakeMotor.getMotorOutputVoltage());
+            SmartDashboard.putNumber("Inner Intake Output", innerIntakeMotor.getMotorOutputPercent());
+    
+            SmartDashboard.putNumber("Right Kebab Current", masterKebab.getOutputCurrent());
+            SmartDashboard.putNumber("Right Kebab Voltage", masterKebab.getMotorOutputVoltage());
+            SmartDashboard.putNumber("Right Kebab Output", masterKebab.getMotorOutputPercent());
+    
+            SmartDashboard.putNumber("Left Kebab Current", slaveKebab.getOutputCurrent());
+            SmartDashboard.putNumber("Left Kebab Voltage", slaveKebab.getMotorOutputVoltage());
+            SmartDashboard.putNumber("Left Kebab Output", slaveKebab.getMotorOutputPercent());
+        }
+
+        SmartDashboard.putBoolean("Kebab State", kebabSolenoid.get());
         SmartDashboard.putBoolean("Has Cargo", hasCargo());
         SmartDashboard.putBoolean("Raw Cargo", isCargoFromSensor());
-        SmartDashboard.putNumber("Inner Intake Current", innerIntakeMotor.getOutputCurrent());
-        SmartDashboard.putNumber("Inner Intake Voltage", innerIntakeMotor.getMotorOutputVoltage());
-        SmartDashboard.putNumber("Inner Intake Output", innerIntakeMotor.getMotorOutputPercent());
-
-        SmartDashboard.putNumber("Right Kebab Current", masterKebab.getOutputCurrent());
-        SmartDashboard.putNumber("Right Kebab Voltage", masterKebab.getMotorOutputVoltage());
-        SmartDashboard.putNumber("Right Kebab Output", masterKebab.getMotorOutputPercent());
-
-        SmartDashboard.putNumber("Left Kebab Current", slaveKebab.getOutputCurrent());
-        SmartDashboard.putNumber("Left Kebab Voltage", slaveKebab.getMotorOutputVoltage());
-        SmartDashboard.putNumber("Left Kebab Output", slaveKebab.getMotorOutputPercent());
-
-        /*
-         * if(Constants.showDebugOutput) {
-         * SmartDashboard.putNumber("Inner Intake Current",
-         * innerIntakeMotor.getOutputCurrent());
-         * SmartDashboard.putNumber("Inner Intake Voltage",
-         * innerIntakeMotor.getMotorOutputVoltage());
-         * SmartDashboard.putNumber("Inner Intake Output",
-         * innerIntakeMotor.getMotorOutputPercent());
-         * 
-         * SmartDashboard.putNumber("Right Kebab Current",
-         * masterKebab.getOutputCurrent());
-         * SmartDashboard.putNumber("Right Kebab Voltage",
-         * masterKebab.getMotorOutputVoltage());
-         * SmartDashboard.putNumber("Right Kebab Output",
-         * masterKebab.getMotorOutputPercent());
-         * 
-         * SmartDashboard.putNumber("Left Kebab Current",
-         * slaveKebab.getOutputCurrent());
-         * SmartDashboard.putNumber("Left Kebab Voltage",
-         * slaveKebab.getMotorOutputVoltage());
-         * SmartDashboard.putNumber("Left Kebab Output",
-         * slaveKebab.getMotorOutputPercent()); }
-         */
+        
     }
 
     @Override

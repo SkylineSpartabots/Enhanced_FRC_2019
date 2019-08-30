@@ -26,7 +26,7 @@ import frc.robot.subsystems.SubsystemManager;
 import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.HatchMechanism.State;
 import frc.utils.CrashTracker;
-import frc.utils.CurvatureDrive;
+import frc.utils.DriveControl;
 import frc.utils.TelemetryUtil;
 import frc.utils.TelemetryUtil.PrintStyle;
 
@@ -61,7 +61,7 @@ public class Robot extends TimedRobot {
   private Looper disabledLooper = new Looper();
 
   private Xbox driver, operator;
-  private CurvatureDrive curvatureDrive;
+  private DriveControl driveControl;
   private boolean useOneController = false;
 
   @Override
@@ -76,11 +76,11 @@ public class Robot extends TimedRobot {
     intake = Intake.getInstance();
     hatchMech = HatchMechanism.getInstance();
     elevator = elevator.getInstance();
-    //s = Superstructure.getInstance();
+    s = Superstructure.getInstance();
     //robotState = RobotState.getInstance();
     //trajectoryGenerator = TrajectoryGenerator.getInstance();
-    curvatureDrive = new CurvatureDrive();
-    subsystems = new SubsystemManager(Arrays.asList(drive, elevator, intake, hatchMech)); 
+    driveControl = new DriveControl();
+    subsystems = new SubsystemManager(Arrays.asList(drive, elevator, intake, hatchMech, s)); 
     limelight = limelight.getInstance();
 
     driver = new Xbox(0);
@@ -199,20 +199,23 @@ public class Robot extends TimedRobot {
     }*/
 
     
+    if(operator.bButton.wasActivated()) {
+      s.requestTest();
+    }
 
   
 
-    double driveThrottle = driver.getY(Hand.kRight);
-    double turn = driver.getX(Hand.kLeft);
+    double driveThrottle = driver.getY(Hand.kRight) * elevator.getAntiTipCoeffecient();
+    double turn = driver.getX(Hand.kLeft) * elevator.getAntiTipCoeffecient();
     
     if(SmartDashboardInteractions.curvatureDriveOverride.get()) {
-      //regular arcade drive
+      drive.setOpenLoop(driveControl.arcadeDrive(driveThrottle, turn));
     } else {
       boolean isQuickTurn = driver.getStartButton();
-      //drive.setOpenLoop(curvatureDrive.curvatureDrive(driveThrottle, turn, isQuickTurn));
+      //drive.setOpenLoop(driveControl.curvatureDrive(driveThrottle, turn, isQuickTurn));
     }
     
-    boolean elevatorUp = false;//elevator.getHeight() > 5;
+    boolean elevatorUp = elevator.getHeight() > 200;
     boolean hasCargo = intake.hasCargo();
     boolean hasHatch = hatchMech.hasHatch();
   
@@ -307,7 +310,7 @@ public class Robot extends TimedRobot {
     } else if (operator.aButton.wasActivated()) {
       elevator.setTargetHeight(Superstructure.ElevatorHeights.FIRST_LEVEL.getHeight());
     } else if (operator.xButton.wasActivated()) {
-      //elevator.setTargetHeight(Superstructure.ElevatorHeights.SECOND_LEVEL.getHeight());
+      elevator.setTargetHeight(Superstructure.ElevatorHeights.SECOND_LEVEL.getHeight());
     } else if (operator.yButton.wasActivated()) {
       //elevator.setTargetHeight(Superstructure.ElevatorHeights.THIRD_LEVEL.getHeight());
     } else if (operator.bButton.wasActivated()) {

@@ -10,7 +10,7 @@ package frc.utils;
 /**
  * Add your docs here.
  */
-public class CurvatureDrive {
+public class DriveControl {
     private static final double turnNonLinearity = 0.6;
     
     private static final double negInertiaThreshold = 0.65;
@@ -105,6 +105,11 @@ public class CurvatureDrive {
 
         return new DriveSignal(leftPower, rightPower);
 
+    }
+
+
+    public DriveSignal arcadeDrive(double throttle, double turn) {
+        return new DriveSignal(throttle + turn, throttle - turn);
     }
 
 }
