@@ -41,10 +41,10 @@ public class DriveTrajectoryAction implements Action {
 
     @Override
     public boolean isFinished() {
-        if(drive.isDoneWithTrajectory()) {
+       /* if(drive.isDoneWithTrajectory()) {
             TelemetryUtil.print("Has finished trajectory", PrintStyle.NONE);
             return true;
-        }
+        }*/
         return false;
     }
 
@@ -54,7 +54,7 @@ public class DriveTrajectoryAction implements Action {
         if(resetPose) {
             robotState.reset(Timer.getFPGATimestamp(), trajectory.getState().state().getPose());
         }
-        drive.setTrajectory(trajectory);
+        //drive.setTrajectory(trajectory);
     }
 
     @Override

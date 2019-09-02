@@ -25,7 +25,8 @@ public class WaitToFinishPathAction implements Action {
 
     @Override
     public boolean isFinished() {
-        return drive.isDoneWithTrajectory() || (Timer.getFPGATimestamp() - startTime) > timeout;
+        return //drive.isDoneWithTrajectory() || 
+        (Timer.getFPGATimestamp() - startTime) > timeout;
     }
 
     @Override

@@ -11,12 +11,16 @@ import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.utils.TelemetryUtil.PrintStyle;
 
 /**
  * Add your docs here.
  */
 public class PIDController {
     private double kP, kI, kD;
+    private double gainkP = 0, gainkI = 0, gainkD = 0;
+    private double setkP, setkI, setkD;
+    private double gainScheduleThreshold = 0;
     private double desiredValue;
     protected double prevError;
     private double errorSum;
@@ -55,6 +59,13 @@ public class PIDController {
         this.kP = kP;
         this.kI = kI;
         this.kD = kD;
+    }
+
+    public void setGainSchedule(double threshold, double kP, double kI, double kD) {
+        gainScheduleThreshold = threshold;
+        this.gainkP = kP;
+        this.gainkI = kI;
+        this.gainkD = kD;
     }
 
     public void setDesiredValue(double desiredValue) {
@@ -106,13 +117,27 @@ public class PIDController {
         return finishedDebouncer.getDebouncedValue();
     }
 
+    public double getError() { 
+        return desiredValue - sensorInput.getAsDouble();
+    }
+
     public double getOutput() {
         double pVal = 0;
         double iVal = 0;
         double dVal = 0;
 
         double error = desiredValue - sensorInput.getAsDouble();
-        
+        System.out.println(gainkP);
+        if(Math.abs(error) < gainScheduleThreshold) {
+            TelemetryUtil.print("Gain Scheduling", PrintStyle.ERROR);
+            setkP = gainkP;
+            setkI = gainkI;
+            setkD = gainkD;
+        } else {
+            setkP = kP;
+            setkI = kI;
+            setkD = kD;
+        }
 
         if(firstCycle) {
             prevError = error;
@@ -128,7 +153,7 @@ public class PIDController {
         deltaTime /= 20;
 
         //Calculate p value
-        pVal = error * kP;
+        pVal = error * setkP;
 
         //Calculate i value
         if(Math.abs(error) < Math.abs(iRange)) {
@@ -136,14 +161,14 @@ public class PIDController {
         } else {
             errorSum = 0;
         }
-        iVal = errorSum * kI;
+        iVal = errorSum * setkI;
 
         //Calculate d value
         double derivative = (error - prevError) / deltaTime;
-        dVal = kD * derivative;
+        dVal = setkD* derivative;
 
         //overall pid output
-        double output  = kP + kI + kD;
+        double output  = pVal +iVal + dVal;
 
         //limit value
         output = Util.limit(output, minOutput, maxOutput);
@@ -152,6 +177,9 @@ public class PIDController {
         prevError = error;
 
         if(debug) {
+            SmartDashboard.putNumber("kp", setkP);
+            SmartDashboard.putNumber("kI", setkI);
+            SmartDashboard.putNumber("kD", setkD);
             SmartDashboard.putNumber("P Out", pVal);
             SmartDashboard.putNumber("I Out", iVal);
             SmartDashboard.putNumber("D Out", dVal);

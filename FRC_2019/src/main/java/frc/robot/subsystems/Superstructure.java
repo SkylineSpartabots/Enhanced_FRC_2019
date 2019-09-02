@@ -20,6 +20,9 @@ import frc.robot.loops.Limelight;
 import frc.robot.loops.Loop;
 import frc.robot.subsystems.requests.Request;
 import frc.robot.subsystems.requests.RequestList;
+import frc.utils.DriveSignal;
+import frc.utils.TelemetryUtil;
+import frc.utils.TelemetryUtil.PrintStyle;
 
 /**
  * Add your docs here.
@@ -53,8 +56,8 @@ public class Superstructure extends Subsystem {
     }
 
     public enum ElevatorHeights {
-        DOWN(0, 0), FIRST_LEVEL(0, 20.5), SECOND_LEVEL(28, 48.5), THIRD_LEVEL(56, 76.5), CARGO_SHIP(0, 40);
-
+        DOWN(0, 0), FIRST_LEVEL(0, 20.35), SECOND_LEVEL(28, 48.5), THIRD_LEVEL(56, 76.5), CARGO_SHIP(0, 40);
+        //SECOND_LEVEL(28, 48.5)
         public double hatchPosition;
         public double cargoPosition;
 
@@ -167,49 +170,50 @@ public class Superstructure extends Subsystem {
 
         @Override
         public void onLoop(double timestamp) {
-            if (!activeRequestsCompleted) {
-                if (newRequests) {
-                    if (activeRequests.isParallel()) {
-                        boolean allActivated = true;
-                        for (Iterator<Request> iterator = activeRequests.getRequests().iterator(); iterator
-                                .hasNext();) {
-                            Request request = iterator.next();
-                            boolean allowed = request.allowed();
-                            allActivated &= allowed;
-                            if (allowed)
-                                request.act();
-                        }
-                        newRequests = !allActivated;
-                    } else {
-                        if (activeRequests.isEmpty()) {
-                            activeRequestsCompleted = true;
-                            return;
-                        }
-                        currentRequest = activeRequests.remove();
-                        currentRequest.act();
-                        newRequests = false;
-                    }
-                }
-                if (activeRequests.isParallel()) {
-                    boolean done = true;
-                    for (Request request : activeRequests.getRequests()) {
-                        done &= request.isFinished();
-                    }
-                    activeRequestsCompleted = done;
-                } else if (currentRequest.isFinished()) {
-                    if (activeRequests.isEmpty()) {
-                        activeRequestsCompleted = true;
-                    } else if (activeRequests.getRequests().get(0).allowed()) {
-                        newRequests = true;
-                        activeRequestsCompleted = false;
-                    }
-                }
-            } else {
-                if (!queuedRequests.isEmpty()) {
-                    setActiveRequests(queuedRequests.remove(0));
-                } else {
-                    allRequestsCompleted = true;
-                }
+            synchronized(Superstructure.this){
+				if(!activeRequestsCompleted){
+					if(newRequests){
+						if(activeRequests.isParallel()){
+							boolean allActivated = true;
+							for(Iterator<Request> iterator = activeRequests.getRequests().iterator(); iterator.hasNext();){
+								Request request = iterator.next();
+								boolean allowed = request.allowed();
+								allActivated &= allowed;
+								if(allowed) request.act();
+							}
+							newRequests = !allActivated;
+						}else{
+							if(activeRequests.isEmpty()){
+								activeRequestsCompleted = true;
+								return;
+							}
+							currentRequest = activeRequests.remove();
+							currentRequest.act();
+							newRequests = false;
+						}
+					}
+					if(activeRequests.isParallel()){
+						boolean done = true;
+						for(Request request : activeRequests.getRequests()){
+							done &= request.isFinished();
+						}
+						activeRequestsCompleted = done;
+					}else if(currentRequest.isFinished()){
+							if(activeRequests.isEmpty()){
+								activeRequestsCompleted = true;
+							}else if(activeRequests.getRequests().get(0).allowed()){
+								newRequests = true;
+								activeRequestsCompleted = false;
+							}
+					}
+				}else{
+					if(!queuedRequests.isEmpty()){
+						setActiveRequests(queuedRequests.remove(0));
+					}else{
+						allRequestsCompleted = true;
+					}
+				}
+			
             }
         }
 
@@ -249,13 +253,14 @@ public class Superstructure extends Subsystem {
     }
 
     public void requestTest() {
-        RequestList state = new RequestList(
-                    Arrays.asList(hatchMech.stateRequest(HatchMechanism.State.SCORING), intake.stateRequest(Intake.State.IDLE_WITH_KEBABS)),
-                    true);
-        RequestList queue = new RequestList(Arrays.asList(waitRequest(2), hatchMech.stateRequest(HatchMechanism.State.STOWED),
-                    waitRequest(2), intake.stateRequest(Intake.State.IDLE_WITH_KEBABS)), false);
+        RequestList state = new RequestList(Arrays.asList(hatchMech.stateRequest(HatchMechanism.State.RECIEVING), drive.alignToTargetRequest(), driveUntilHatchRequest(), drive.openLoopRequest(DriveSignal.BRAKE)),
+                    false);
+        RequestList queue = new RequestList(
+                    Arrays.asList(waitRequest(2), intake.stateRequest(Intake.State.OFF), waitRequest(2), hatchMech.stateRequest(HatchMechanism.State.STOWED)),
+                    false);
         request(state);
-        replaceQueue(queue);
+        System.out.println("FINISHED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        //replaceQueue(queue);
     }
 
     public void deployingState(ElevatorHeights height) {
@@ -302,4 +307,26 @@ public class Superstructure extends Subsystem {
             }
         };
     }
+
+
+    public Request driveUntilHatchRequest() {
+        return new Request() {
+            double startTime = 0;
+            double timeOut = 2;
+
+            @Override
+            public void act() {
+                startTime = Timer.getFPGATimestamp();
+                drive.setOpenLoop(new DriveSignal(0.25, 0.25));
+                hatchMech.conformToState(HatchMechanism.State.RECIEVING);
+            }
+
+            @Override
+            public boolean isFinished() {
+                return hatchMech.hasHatch() || (Timer.getFPGATimestamp() - startTime) >= timeOut;
+            }
+        };
+    }
+
+
 }

@@ -45,13 +45,13 @@ public class RobotState {
     private DriveStation side;
 
     private RobotState() {
-        reset(0, new Pose2d());
+        //reset(0, new Pose2d());
     }
 
     public synchronized void reset(double start_time, Pose2d initial_field_to_vehicle) {
         fieldToVehicle = new InterpolatingTreeMap<>(observationBufferSize);
         fieldToVehicle.put(new InterpolatingDouble(start_time), initial_field_to_vehicle);
-        Drivetrain.getInstance().setHeading(initial_field_to_vehicle.getRotation());
+        //Drivetrain.getInstance().setHeading(initial_field_to_vehicle.getRotation());
         predictedVelocity = Twist2d.identity();
         measuredVelocity = Twist2d.identity();
         distanceDriven = 0;
@@ -116,11 +116,11 @@ public class RobotState {
     }
 
     public void outputToSmartDashboard() {
-        Pose2d odometry = getLatestFieldToVehicle().getValue();
-        SmartDashboard.putNumber("Robot Pose X", odometry.getTranslation().x());
-        SmartDashboard.putNumber("Robot Pose Y", odometry.getTranslation().y());
-        SmartDashboard.putNumber("Robot Pose Theta", odometry.getRotation().getDegrees());
-        SmartDashboard.putNumber("Robot Linear Velocity", measuredVelocity.dx);
+        //Pose2d odometry = getLatestFieldToVehicle().getValue();
+        //SmartDashboard.putNumber("Robot Pose X", odometry.getTranslation().x());
+        //SmartDashboard.putNumber("Robot Pose Y", odometry.getTranslation().y());
+        //SmartDashboard.putNumber("Robot Pose Theta", odometry.getRotation().getDegrees());
+        //SmartDashboard.putNumber("Robot Linear Velocity", measuredVelocity.dx);
         SmartDashboard.putBoolean("Is Target Visible", visionTarget.isTargetVisible());
         SmartDashboard.putNumber("Target Area", visionTarget.getTargetArea());
         SmartDashboard.putNumber("Target Angular Displacement", visionTarget.getXOffset());

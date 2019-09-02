@@ -26,7 +26,7 @@ public class WaitForHeadingAction implements Action {
 
     @Override
     public boolean isFinished() {
-        double heading = driveTrain.getHeading().getDegrees();
+        double heading = 0;//driveTrain.getHeading().getDegrees();
         return heading >= lowThreshold && heading <= highThreshold;
     }
 

@@ -26,6 +26,8 @@ import frc.drivers.LazyTalonSRX;
 import frc.robot.Constants;
 import frc.robot.Ports;
 import frc.robot.RobotState;
+import frc.robot.auto.SmartDashboardInteractions;
+import frc.robot.loops.ILooper;
 import frc.robot.loops.Limelight;
 import frc.robot.loops.Loop;
 import frc.robot.subsystems.requests.Request;
@@ -54,15 +56,11 @@ public class Drivetrain extends Subsystem {
     }
 
     public static final double DRIVE_ENCODER_PPR = 1000;
-    public static final double DESIRED_TARGET_AREA = 0; //TODO
+    public static final double DESIRED_TARGET_AREA = 9.5; //TODO
     public static final double VISION_THRESHOLD = 0; //TODO
 
     private DriveControlState state;
     private PeriodicIO periodicIO;
-
-    private DriveMotionPlanner motionPlanner;
-    private Rotation2d gyroOffset = Rotation2d.identity();
-    private boolean overrideTrajectory = false;
 
     private PIDController visionDrivePID;
     private PIDController visionTurnPID;
@@ -81,7 +79,7 @@ public class Drivetrain extends Subsystem {
         leftSlaveA = new LazyTalonSRX(Ports.DRIVE_LEFT_FRONT);
         leftSlaveB = new LazyTalonSRX(Ports.DRIVE_LEFT_BACK);
 
-        rightMaster = new LazyTalonSRX(Ports.DRIVE_RIGHT_CENTER);
+        rightMaster = new LazyTalonSRX(Ports.DRIVE_RIGHT_CENTER); //flip back
         rightSlaveA = new LazyTalonSRX(Ports.DRIVE_RIGHT_FRONT);
         rightSlaveB = new LazyTalonSRX(Ports.DRIVE_RIGHT_BACK);
 
@@ -94,27 +92,27 @@ public class Drivetrain extends Subsystem {
         rightSlaveA.set(ControlMode.Follower, Ports.DRIVE_RIGHT_CENTER);
         rightSlaveB.set(ControlMode.Follower, Ports.DRIVE_RIGHT_CENTER);
 
-        leftMaster.setInverted(InvertType.InvertMotorOutput);
-        rightMaster.setInverted(InvertType.None);
+        leftMaster.setInverted(InvertType.None);
+        rightMaster.setInverted(InvertType.InvertMotorOutput);
         slaves.forEach((s) -> s.setInverted(InvertType.FollowMaster));
 
         for(LazyTalonSRX motor : motors) {
             motor.configVoltageCompSaturation(12.0);
             motor.enableVoltageCompensation(true);
-            motor.setNeutralMode(NeutralMode.Brake);
-            motor.configNominalOutputForward(1.0/12.0);
-            motor.configNominalOutputReverse(-1.0/12.0);
-            motor.configOpenloopRamp(0.2);
-            motor.configClosedloopRamp(0.0);
+           /* motor.setNeutralMode(NeutralMode.Brake);
+            motor.configNominalOutputForward(0/12.0);
+            motor.configNominalOutputReverse(0/12.0);
+            motor.configOpenloopRamp(0.0);
+            motor.configClosedloopRamp(0.0);*/
         }
 
         for(LazyTalonSRX master : masters) {
-            master.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
-            master.setSelectedSensorPosition(0, 0, 50);
+           // master.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
+           // master.setSelectedSensorPosition(0, 0, 50);
             //master.setStatusFramePeriod(StatusFrame.Status_2_Feedback0, 10, 10);
-            master.configVelocityMeasurementPeriod(VelocityMeasPeriod.Period_10Ms, 10);
-            master.configVelocityMeasurementWindow(32, 10);
-            master.setSensorPhase(false); //TODO: set sensor direction
+            //master.configVelocityMeasurementPeriod(VelocityMeasPeriod.Period_10Ms, 10);
+            //master.configVelocityMeasurementWindow(32, 10);
+           //master.setSensorPhase(false); //TODO: set sensor direction
             //TODO: add values
             /*//settings for motion profiling
             master.selectProfileSlot(0, 0);
@@ -129,49 +127,45 @@ public class Drivetrain extends Subsystem {
             master.config_kI(1, kI);
             master.config_kD(1, kD);
             master.config_kF(1, kF);*/
-        }
+    }
 
-        if(!isRightDriveSensorConnected()) {
-            TelemetryUtil.print("right drive encoder is not connected", PrintStyle.ERROR);
-            hasEmergency = true;
-        }
-
-        if(!isLeftDriveSensorConnected()) {
-            TelemetryUtil.print("left drive encoder is not connected", PrintStyle.ERROR);
-            hasEmergency = true;
-        }   
-
-        motionPlanner = new DriveMotionPlanner();
+        //setCurrentLimit(40);
+        
 
         DoubleSupplier drivePIDSupplier = () -> RobotState.visionTarget.getTargetArea();
-        visionDrivePID = new PIDController(0, 0, 0, 0, drivePIDSupplier); //TODO: Add PID and range values
+        visionDrivePID = new PIDController(SmartDashboardInteractions.driveConstants.getkP(),
+            SmartDashboardInteractions.driveConstants.getkI(), 
+            SmartDashboardInteractions.driveConstants.getkD(), 0.005, drivePIDSupplier);
         visionDrivePID.setDesiredValue(DESIRED_TARGET_AREA);
-        visionDrivePID.setMinMaxOutput(-0.7, 0.7);
-        visionDrivePID.setIRange(0); //TODO: set appropriate I range
+        visionDrivePID.setMinMaxOutput(-0.2, 0.4);
+        //visionDrivePID.setIRange(0); //TODO: set appropriate I range
         visionDrivePID.disableDebug();
         visionDrivePID.reset();
 
         DoubleSupplier turnPIDSupplier = () -> RobotState.visionTarget.getXOffset();
-        visionTurnPID = new PIDController(0, 0, 0, 0, turnPIDSupplier); //TODO: Add PID and range values
+        visionTurnPID = new PIDController(SmartDashboardInteractions.turnConstants.getkP(),
+        SmartDashboardInteractions.turnConstants.getkI(), 
+        SmartDashboardInteractions.turnConstants.getkD(), 1.0, turnPIDSupplier); //TODO: Add PID and range values
         visionTurnPID.setDesiredValue(0);
-        visionTurnPID.setMinMaxOutput(-0.7, 0.7);
-        visionTurnPID.setIRange(0); //TODO: set appropriate I range
-        visionTurnPID.disableDebug();
+        visionTurnPID.setMinMaxOutput(-0.35, 0.35);
+        //visionTurnPID.setIRange(0); //TODO: set appropriate I range
+        visionTurnPID.enableDebug();
         visionTurnPID.reset();
 
 
 
     }
 
-    public boolean isRightDriveSensorConnected() {
-        int pulseWidthPeriod = rightMaster.getSensorCollection().getPulseWidthRiseToRiseUs();
-        return pulseWidthPeriod != 0;
+
+    public void setCurrentLimit(int amps) {
+        for(LazyTalonSRX motor : motors) {
+            motor.configContinuousCurrentLimit(amps);
+            motor.configPeakCurrentLimit(amps);
+            motor.configPeakCurrentDuration(10);
+            motor.enableCurrentLimit(true);
+        }
     }
 
-    public boolean isLeftDriveSensorConnected() {
-        int pulseWidthPeriod = leftMaster.getSensorCollection().getPulseWidthRiseToRiseUs();
-        return pulseWidthPeriod != 0;
-    }
 
     private static double rotationsToInches(double rotations) {
         return rotations * (Constants.driveWheelDiameterInches * Math.PI);
@@ -209,13 +203,13 @@ public class Drivetrain extends Subsystem {
         }
     }
 
-
     public synchronized void setOpenLoop(DriveSignal signal) {
+        //TelemetryUtil.print("Setting open loop control", PrintStyle.ERROR);
         if(state != DriveControlState.OPEN_LOOP) {
-            setBrakeMode(false);
-            leftMaster.configNeutralDeadband(0.04, 0);
-            rightMaster.configNeutralDeadband(0.04, 0);
-            Limelight.getInstance().ledsOn(false);
+            setBrakeMode(true);
+            //leftMaster.configNeutralDeadband(0.0, 0);
+            //rightMaster.configNeutralDeadband(0.0, 0);
+            Limelight.getInstance().ledsOn(true);
             state = DriveControlState.OPEN_LOOP;
         }
 
@@ -236,13 +230,17 @@ public class Drivetrain extends Subsystem {
 
     public synchronized void setVisionControl() {
         if(state != DriveControlState.VISION) {
-            setBrakeMode(true);
+            setBrakeMode(false);
             leftMaster.configNeutralDeadband(0.0, 0);
             rightMaster.configNeutralDeadband(0.0, 0);
+            visionTurnPID.setConstants(0.012, 0.0, 0.0);
+            visionTurnPID.setGainSchedule(0, 0.016, 0.005, 0.0);
+            visionDrivePID.setConstants(0.04, 0, 0);
             Limelight.getInstance().ledsOn(true);
             visionDrivePID.reset();
             visionTurnPID.reset();
             state = DriveControlState.VISION;
+            TelemetryUtil.print("Setting vision control", PrintStyle.ERROR);
         }
     }
 
@@ -250,10 +248,10 @@ public class Drivetrain extends Subsystem {
     public synchronized void setVelocity(DriveSignal signal, DriveSignal feedForward) {
         if(state != DriveControlState.PATH_FOLLOWING) {
             setBrakeMode(true);
-            leftMaster.selectProfileSlot(0, 0);
-            rightMaster.selectProfileSlot(0, 0);
-            leftMaster.configNeutralDeadband(0);
-            rightMaster.configNeutralDeadband(0);
+            //leftMaster.selectProfileSlot(0, 0);
+            //rightMaster.selectProfileSlot(0, 0);
+            //leftMaster.configNeutralDeadband(0);
+            //rightMaster.configNeutralDeadband(0);
             Limelight.getInstance().ledsOn(false);
             state = DriveControlState.PATH_FOLLOWING;
         }
@@ -262,32 +260,6 @@ public class Drivetrain extends Subsystem {
         periodicIO.right_demand = signal.getRight();
         periodicIO.left_feedforward = feedForward.getLeft();
         periodicIO.right_feedforward = feedForward.getRight();
-    }
-
-    public synchronized void setTrajectory(TrajectoryIterator<TimedState<Pose2dWithCurvature>> trajectory) {
-        if(motionPlanner != null) {
-            overrideTrajectory = false;
-            motionPlanner.reset();
-            motionPlanner.setTrajectory(trajectory);
-            state = DriveControlState.PATH_FOLLOWING;
-        }
-    }
-
-    public boolean isDoneWithTrajectory() {
-        if(motionPlanner == null || state != DriveControlState.PATH_FOLLOWING) {
-            return true;
-        }
-        return motionPlanner.isDone() || overrideTrajectory;
-    }
-
-
-    public synchronized Rotation2d getHeading() {
-        return periodicIO.gyro_heading;
-    }
-
-    public synchronized void setHeading(Rotation2d heading) {
-        gyroOffset = heading.rotateBy(Rotation2d.fromDegrees(Navx.getInstance().getHeading()));
-        periodicIO.gyro_heading = gyroOffset;
     }
     
     public synchronized void resetEncoders() {
@@ -336,43 +308,17 @@ public class Drivetrain extends Subsystem {
         return (getRightLinearVelocity() - getLeftLinearVelocity()) / Constants.kDriveWheelTrackWidthInches;
     }
 
-    public void overrideTrajectory(boolean override) {
-        overrideTrajectory = override;
-    }
 
-    private void updatePathFollower() {
-        if(state == DriveControlState.PATH_FOLLOWING) {
-            final double now = Timer.getFPGATimestamp();
-
-            DriveMotionPlanner.Output output = motionPlanner.update(now, RobotState.getInstance().getFieldToVehicle(now));
-
-            periodicIO.error = motionPlanner.error();
-            periodicIO.path_setpoint = motionPlanner.setpoint();
-
-            if(!overrideTrajectory) {
-                setVelocity(new DriveSignal(radiansPerSecondToTicksPer100ms(output.left_velocity), 
-                    radiansPerSecondToTicksPer100ms(output.right_velocity)), new DriveSignal(output.left_feedforward_voltage/12.0,
-                    output.right_feedforward_voltage/12.0));
-                
-                periodicIO.left_accel = radiansPerSecondToTicksPer100ms(output.left_accel) / 1000.0;
-                periodicIO.right_accel = radiansPerSecondToTicksPer100ms(output.right_accel) / 1000.0;
-            } else {
-                setVelocity(DriveSignal.BRAKE, DriveSignal.BRAKE);
-                periodicIO.left_accel = periodicIO.right_accel = 0;
-            }
-        } else {
-            TelemetryUtil.print("Drive is not in a path following state", PrintStyle.ERROR);
-        }
-    }
-
-    private void updateVisionTargetFollower() {
+    private void updateVisionTargetFollower() {    
         if(state == DriveControlState.VISION) {
             if(RobotState.visionTarget.isTargetVisible()) {
-                double driveSpeed = visionDrivePID.getOutput();
                 double turnSpeed = visionTurnPID.getOutput();
-                setVisionControl(new DriveSignal(driveSpeed + turnSpeed, driveSpeed - turnSpeed));
+                double driveSpeed = visionDrivePID.getOutput() / (1 + (0.022 * visionTurnPID.getError()));
+                setVisionControl(new DriveSignal(driveSpeed-turnSpeed, driveSpeed+turnSpeed));
+                TelemetryUtil.print("Updating vision", PrintStyle.ERROR);
+                SmartDashboard.putNumber("PID Drive Speed", driveSpeed);
             } else {
-                setVisionControl(DriveSignal.BRAKE);
+                setVisionControl(DriveSignal.NEUTRAL);
             }
             
         } else {
@@ -382,7 +328,7 @@ public class Drivetrain extends Subsystem {
     }
 
     public boolean isDoneWithTargetFollowing() {
-        if(state != DriveControlState.VISION || !RobotState.visionTarget.isTargetVisible()) {
+        if(state != DriveControlState.VISION) {
             return true;
         }
         return RobotState.visionTarget.hasReachedTarget();
@@ -403,11 +349,13 @@ public class Drivetrain extends Subsystem {
         @Override
         public void onLoop(double timestamp) {
             synchronized(Drivetrain.this) {
+
+                if(state == DriveControlState.VISION) {
+                    TelemetryUtil.print("VISION", PrintStyle.NONE);
+                    updateVisionTargetFollower();
+                }
                 switch(state) {
                     case OPEN_LOOP:
-                        break;
-                    case PATH_FOLLOWING:
-                        updatePathFollower();
                         break;
                     case VISION:
                         updateVisionTargetFollower();
@@ -428,26 +376,27 @@ public class Drivetrain extends Subsystem {
 
     @Override
     public synchronized void readPeriodicInputs() {
-        double prevLeftTicks = periodicIO.left_position_ticks;
+        /*double prevLeftTicks = periodicIO.left_position_ticks;
         double prevRightTicks = periodicIO.right_position_ticks;
         periodicIO.left_position_ticks = leftMaster.getSelectedSensorPosition(0);
         periodicIO.right_position_ticks = rightMaster.getSelectedSensorPosition(0);
         periodicIO.left_velocity_ticks_per_100ms = leftMaster.getSelectedSensorVelocity(0);
         periodicIO.right_velocity_ticks_per_100ms = rightMaster.getSelectedSensorVelocity(0);
-        periodicIO.gyro_heading = Rotation2d.fromDegrees(Navx.getInstance().getHeading()).rotateBy(gyroOffset);
 
         double deltaLeftTicks = ((periodicIO.left_position_ticks - prevLeftTicks) / DRIVE_ENCODER_PPR) * Math.PI;
         periodicIO.left_distance += deltaLeftTicks * Constants.kDriveWheelDiameterInches;
 
         double deltaRightTicks = ((periodicIO.right_position_ticks -  prevRightTicks) / DRIVE_ENCODER_PPR) * Math.PI;
-        periodicIO.right_distance += deltaRightTicks * Constants.kDriveWheelDiameterInches;
+        periodicIO.right_distance += deltaRightTicks * Constants.kDriveWheelDiameterInches;*/
     }
 
     @Override
     public synchronized void writePeriodicOutputs() {
         if(state == DriveControlState.OPEN_LOOP || state == DriveControlState.VISION) {
-            leftMaster.set(ControlMode.PercentOutput, periodicIO.left_demand, DemandType.ArbitraryFeedForward, 0);
-            rightMaster.set(ControlMode.PercentOutput, periodicIO.right_demand, DemandType.ArbitraryFeedForward, 0);
+            leftMaster.set(ControlMode.PercentOutput, periodicIO.left_demand);
+            rightMaster.set(ControlMode.PercentOutput, periodicIO.right_demand);
+            SmartDashboard.putNumber("Left Demand", periodicIO.left_demand);
+            SmartDashboard.putNumber("Right Demand", periodicIO.right_demand);
         } else {
             //TODO: Make sure this is correct
             leftMaster.set(ControlMode.Velocity, periodicIO.left_demand, DemandType.ArbitraryFeedForward, 
@@ -465,23 +414,13 @@ public class Drivetrain extends Subsystem {
     
     @Override
     public void outputTelemetry() {
-        if(Constants.showDebugOutput) {
-            SmartDashboard.putNumber("Right Drive Distance", periodicIO.right_distance);
-            SmartDashboard.putNumber("Right Drive Ticks", periodicIO.right_position_ticks);
-            SmartDashboard.putNumber("Left Drive Distance", periodicIO.left_distance);
-            SmartDashboard.putNumber("Left Drive Ticks", periodicIO.left_position_ticks);
-            SmartDashboard.putNumber("Right Linear Velocity", getRightLinearVelocity());
-            SmartDashboard.putNumber("Left Linear Velocity", getLeftLinearVelocity());
-
-            SmartDashboard.putNumber("x_err", periodicIO.error.getTranslation().x());
-            SmartDashboard.putNumber("y_err", periodicIO.error.getTranslation().y());
-            SmartDashboard.putNumber("theta_err", periodicIO.error.getRotation().getDegrees());
-            if(getHeading() != null) {
-                SmartDashboard.putNumber("Gyro Heading", getHeading().getDegrees());
-            }
-        }
+            SmartDashboard.putNumber("Left Front Current", leftSlaveA.getMotorOutputPercent());
+            SmartDashboard.putNumber("Left Center Current", leftMaster.getMotorOutputPercent());
+            SmartDashboard.putNumber("Left Back Current", leftSlaveB.getMotorOutputPercent());
+            SmartDashboard.putNumber("Right Front Current", rightSlaveA.getMotorOutputPercent());
+            SmartDashboard.putNumber("Right Center Current", rightMaster.getMotorOutputPercent());
+            SmartDashboard.putNumber("Right Back Current", rightSlaveB.getMotorOutputPercent());
     }
-
 
     @Override
     public void stop() {
@@ -524,31 +463,12 @@ public class Drivetrain extends Subsystem {
         };
     }
 
-    public Request trajectoryRequest(TrajectoryIterator<TimedState<Pose2dWithCurvature>> trajectory) {
-        return new Request(){
-        
-            @Override
-            public void act() {
-                setTrajectory(trajectory);
-            }
-
-            @Override
-            public boolean isFinished() {
-                return isDoneWithTrajectory();
-            }
-        };
+    @Override
+    public void registerEnabledLoops(ILooper enabledLooper) {
+        enabledLooper.register(loop);
     }
 
-    public Request startTrajectoryRequest(TrajectoryIterator<TimedState<Pose2dWithCurvature>> trajectory) {
-        return new Request(){
-        
-            @Override
-            public void act() {
-                setTrajectory(trajectory);
-            }
-        };
-    }
-    
+   
 
     public enum DriveControlState {
         OPEN_LOOP,

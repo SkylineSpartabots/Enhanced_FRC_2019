@@ -8,6 +8,7 @@
 package frc.robot;
 
 import java.util.Arrays;
+import java.util.function.BooleanSupplier;
 
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
@@ -26,7 +27,9 @@ import frc.robot.subsystems.SubsystemManager;
 import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.HatchMechanism.State;
 import frc.utils.CrashTracker;
+import frc.utils.Debouncer;
 import frc.utils.DriveControl;
+import frc.utils.DriveSignal;
 import frc.utils.TelemetryUtil;
 import frc.utils.TelemetryUtil.PrintStyle;
 
@@ -50,7 +53,7 @@ public class Robot extends TimedRobot {
 
  private Superstructure s;
   private SubsystemManager subsystems;
-  //private RobotState robotState;
+  private RobotState robotState;
   private Limelight limelight;
 
   private AutoModeExecuter autoModeExecuter;
@@ -63,6 +66,8 @@ public class Robot extends TimedRobot {
   private Xbox driver, operator;
   private DriveControl driveControl;
   private boolean useOneController = false;
+
+  
 
   @Override
   public void robotInit() {
@@ -77,7 +82,7 @@ public class Robot extends TimedRobot {
     hatchMech = HatchMechanism.getInstance();
     elevator = elevator.getInstance();
     s = Superstructure.getInstance();
-    //robotState = RobotState.getInstance();
+    robotState = RobotState.getInstance();
     //trajectoryGenerator = TrajectoryGenerator.getInstance();
     driveControl = new DriveControl();
     subsystems = new SubsystemManager(Arrays.asList(drive, elevator, intake, hatchMech, s)); 
@@ -94,7 +99,6 @@ public class Robot extends TimedRobot {
     drive.zeroSensors();
     elevator.zeroSensors();
 
-    
 
     //trajectoryGenerator.generateTrajectories();
   }
@@ -147,13 +151,15 @@ public class Robot extends TimedRobot {
       driver.update();
       operator.update();
 
+      
+
       if (useOneController)
         driveWithOneController();
       else
         driveWithTwoControllers();
 
       SmartDashboard.putBoolean("Robot Emergency", subsystems.hasEmergency());
-
+      robotState.outputToSmartDashboard();
       allPeriodic();
     } catch (Throwable t) {
       CrashTracker.logThrowableCrash(t);
@@ -180,6 +186,8 @@ public class Robot extends TimedRobot {
   }
 
   private boolean areKebabsDown = false;
+  private boolean wasElevatorUp = true;
+  private boolean holdingElevatorOverride = false;
 
   private void driveWithTwoControllers() {
 
@@ -199,37 +207,55 @@ public class Robot extends TimedRobot {
     }*/
 
     
-    if(operator.bButton.wasActivated()) {
-      s.requestTest();
+    if(driver.yButton.isBeingPressed()) {
+      if(driver.bButton.wasActivated()) {
+       drive.setVisionControl();
+      } 
+      if(driver.xButton.wasActivated()) {
+        s.requestTest();
+      }
+      return;
+    }
+
+    if(operator.leftJoystickButton.isBeingPressed()) {
+      SmartDashboardInteractions.updateOverrides();
     }
 
   
 
-    double driveThrottle = driver.getY(Hand.kRight) * elevator.getAntiTipCoeffecient();
-    double turn = driver.getX(Hand.kLeft) * elevator.getAntiTipCoeffecient();
+    double driveThrottle = driver.getY(Hand.kLeft)* elevator.getAntiTipCoeffecient();
+    double turn = driver.getX(Hand.kRight) * elevator.getAntiTipCoeffecient();
     
-    if(SmartDashboardInteractions.curvatureDriveOverride.get()) {
+    if(!SmartDashboardInteractions.curvatureDriveOverride.get()) {
+      SmartDashboard.putNumber("Drive", driveThrottle);
+      SmartDashboard.putNumber("Turn", turn);
+      SmartDashboard.putNumber("Manual Coeffecient", elevator.getAntiTipCoeffecient());
       drive.setOpenLoop(driveControl.arcadeDrive(driveThrottle, turn));
     } else {
       boolean isQuickTurn = driver.getStartButton();
       //drive.setOpenLoop(driveControl.curvatureDrive(driveThrottle, turn, isQuickTurn));
     }
     
-    boolean elevatorUp = elevator.getHeight() > 200;
+    
     boolean hasCargo = intake.hasCargo();
     boolean hasHatch = hatchMech.hasHatch();
+    boolean elevatorUp = elevator.isElevatorUp();
+  
+    if(elevatorUp) {
+      holdingElevatorOverride = true;
+    }
   
     /**
      * The following series of nested if statements is the control logic behind
      * setting the appropriate state of the intake state machine as determined by
      * operator gamepad
      */
-
     
     if (operator.dpadUp.wasActivated() || elevatorUp || hasCargo || hasHatch) {
       areKebabsDown = false;
     } else if (operator.dpadDown.wasActivated()) {
       areKebabsDown = true;
+      holdingElevatorOverride = false;
     }
 
     if (areKebabsDown) {
@@ -244,6 +270,7 @@ public class Robot extends TimedRobot {
       if (hasHatch) {
         intake.conformToState(Intake.State.CARGO_PHOBIC);
       } else if (operator.rightTrigger.isBeingPressed()) {
+        holdingElevatorOverride = false;
         if (hasCargo) {
           if (elevatorUp) {
             intake.conformToState(Intake.State.INTAKE_ELEVATOR_UP);
@@ -254,19 +281,23 @@ public class Robot extends TimedRobot {
           intake.conformToState(Intake.State.INTAKE_WITHOUT_KEBABS);
         }
       } else if (operator.leftTrigger.isBeingPressed()) {
+        holdingElevatorOverride = false;
         if (hasCargo && elevatorUp) {
           intake.conformToState(Intake.State.OUTAKE_ELEVATOR_UP);
         } else {
           intake.conformToState(Intake.State.OUTAKE_WITHOUT_KEBABS);
         }
       } else {
-        if (hasCargo) {
+        if (hasCargo && !elevatorUp && !holdingElevatorOverride) {
           intake.conformToState(Intake.State.HOLDING);
         } else {
           intake.conformToState(Intake.State.OFF);
         }
       }
     }
+
+    wasElevatorUp = elevatorUp;
+    SmartDashboard.putBoolean("Uncontrolled Holding", wasElevatorUp);
 
     /**
      * The following is the logic for controlling the state of the hatch mechnanism
@@ -283,9 +314,9 @@ public class Robot extends TimedRobot {
     } else {
       if(driver.backButton.wasActivated()) {
         hatchMech.conformToState(HatchMechanism.State.STOWED);
-      } else if (driver.rightBumper.wasActivated()) {
-        hatchMech.conformToState(HatchMechanism.State.RECIEVING);
       } else if (driver.leftBumper.wasActivated()) {
+        hatchMech.conformToState(HatchMechanism.State.RECIEVING);
+      } else if (driver.rightBumper.wasActivated()) {
         hatchMech.conformToState(HatchMechanism.State.SCORING);
       } else if (hatchMech.getState() == HatchMechanism.State.STOWED
           || hatchMech.getState() == HatchMechanism.State.FINGERS_STOWED_EXTENDED) {
@@ -305,21 +336,22 @@ public class Robot extends TimedRobot {
  
     double manualControlJoystick = operator.getY(Hand.kRight);
 
-    if (manualControlJoystick != 0) {
+
+    /*if (manualControlJoystick != 0) {
       elevator.setOpenLoop(manualControlJoystick);
     } else if (operator.aButton.wasActivated()) {
       elevator.setTargetHeight(Superstructure.ElevatorHeights.FIRST_LEVEL.getHeight());
     } else if (operator.xButton.wasActivated()) {
       elevator.setTargetHeight(Superstructure.ElevatorHeights.SECOND_LEVEL.getHeight());
     } else if (operator.yButton.wasActivated()) {
-      //elevator.setTargetHeight(Superstructure.ElevatorHeights.THIRD_LEVEL.getHeight());
+      elevator.setTargetHeight(Superstructure.ElevatorHeights.THIRD_LEVEL.getHeight());
     } else if (operator.bButton.wasActivated()) {
-      //elevator.setTargetHeight(Superstructure.ElevatorHeights.CARGO_SHIP.getHeight());
-    } else if (operator.leftBumper.wasActivated()){
-      //elevator.setTargetHeight(Superstructure.ElevatorHeights.DOWN.getHeight());
-    } else if (elevator.isOpenLoop() || elevator.hasReachedTargetHeight()) {
-      //elevator.lockHeight();
-    }
+      elevator.setTargetHeight(Superstructure.ElevatorHeights.CARGO_SHIP.getHeight());
+    } else if (operator.rightBumper.wasActivated()){
+      elevator.setTargetHeight(Superstructure.ElevatorHeights.DOWN.getHeight());
+    } else if (elevator.isOpenLoop()) {
+      elevator.lockHeight();
+    }*/
 
   }
 

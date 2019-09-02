@@ -89,7 +89,7 @@ public class HatchMechanism extends Subsystem {
     }
 
     private boolean hasHatchFromSensor() {
-        return hatchDistanceSensor.getValue() < Constants.HATCH_DISTANCE_THRESHOLD;
+        return hatchDistanceSensor.getValue() > Constants.HATCH_DISTANCE_THRESHOLD;
     }
 
     public Request stateRequest(State newState) {

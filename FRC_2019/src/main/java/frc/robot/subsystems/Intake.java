@@ -26,6 +26,8 @@ import frc.robot.auto.SmartDashboardInteractions;
 import frc.robot.loops.ILooper;
 import frc.robot.loops.Loop;
 import frc.robot.subsystems.requests.Request;
+import frc.utils.TelemetryUtil;
+import frc.utils.TelemetryUtil.PrintStyle;
 
 /**
  * Intake state machine
@@ -50,6 +52,10 @@ public class Intake extends Subsystem {
 
     public boolean hasCargo() {
         return hasCargo;
+    }
+
+    public void setCargoState(boolean state) {
+        hasCargo = state;
     }
 
     private Intake() {
@@ -108,13 +114,14 @@ public class Intake extends Subsystem {
         OFF(0.0, 0.0, false), 
         HOLDING(0.0, 0.0, false), 
         CARGO_PHOBIC(0.0, 0.0, false), 
+        IDLE_WITHOUT_KEBABS(0.0, 0.0, false),
         IDLE_WITH_KEBABS(0.0, 0.0, true),
         INTAKE_WITH_KEBABS(0.75, 0.75, true), 
         OUTAKE_WITH_KEBABS(-0.7, -0.7, true),
         INTAKE_WITHOUT_KEBABS(0.75, 0, false),
         OUTAKE_WITHOUT_KEBABS(-0.7, 0, false),
-        INTAKE_ELEVATOR_UP(0.3, 0, false),
-        OUTAKE_ELEVATOR_UP(-0.6, 0, false);
+        INTAKE_ELEVATOR_UP(0.1, 0, false),
+        OUTAKE_ELEVATOR_UP(-0.1, 0, false);
 
         public double innerIntakeSpeed = 0.0;
         public double kebabSpeed = 0.0;
@@ -179,7 +186,9 @@ public class Intake extends Subsystem {
                 case OUTAKE_ELEVATOR_UP:
                     break;
                 case HOLDING:
-                    hasCargo = true;
+                    if(stateChanged) {
+                        hasCargo = true;
+                    }
                     if(!isCargoFromSensor()) {
                         setInnerIntakeSpeed(0.5);
                     } else {
@@ -187,7 +196,9 @@ public class Intake extends Subsystem {
                     }
                     break;
                 case CARGO_PHOBIC:
-                    hasCargo = false;
+                    if(stateChanged) {
+                        hasCargo = false;
+                    }
                     if(isCargoFromSensor()) { 
                         setInnerIntakeSpeed(-0.7);
                     } else {
@@ -231,6 +242,8 @@ public class Intake extends Subsystem {
         deployKebabs(desiredState.deployKebabs);
         setKebabSpeed(desiredState.kebabSpeed);
 
+        
+
         if (!(desiredState == State.CARGO_PHOBIC || desiredState == State.HOLDING)) {
             setInnerIntakeSpeed(desiredState.innerIntakeSpeed);
         }
@@ -241,6 +254,7 @@ public class Intake extends Subsystem {
         return new Request() {
             @Override
             public void act() {
+                TelemetryUtil.print("Executing", PrintStyle.ERROR);
                 conformToState(desiredState);
             }
         };

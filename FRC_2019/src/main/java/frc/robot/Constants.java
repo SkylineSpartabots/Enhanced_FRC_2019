@@ -24,7 +24,7 @@ public class Constants {
     public final static int maxElevatorHeight = 80;
     public final static int minElevatorHeight = 0;
     public final static int elevatorCurrentLimit = 40;
-    public final static double elevatorHeightTolerance = 0.5;
+    public final static double elevatorHeightTolerance = 15;
     public final static double manualElevatorDriveProportion = 0.5;
     public final static double elevatorTicksPerInch = 58.75;
 

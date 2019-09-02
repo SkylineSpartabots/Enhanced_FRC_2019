@@ -41,7 +41,7 @@ public class SmartDashboardInteractions {
     public static DashboardOverride cargoSensorOverride, hatchSensorOverride, elevatorEncoderOverride,
         elevatorLimitSwitchOverride, curvatureDriveOverride, antiTipOverride;
 
-    public static MotionProfileContantsWriter elevatorAscentConstants, elevatorDescentConstants;
+    public static MotionProfileContantsWriter driveConstants, turnConstants;
 
     public void initWithDefaults() {
         modeChooser = new SendableChooser<AutoOption>();
@@ -67,8 +67,8 @@ public class SmartDashboardInteractions {
         curvatureDriveOverride = new DashboardOverride("Curvature Drive");
         antiTipOverride = new DashboardOverride("Drive Anti-Tip");
 
-        elevatorAscentConstants = new MotionProfileContantsWriter("Ascent");
-        elevatorDescentConstants = new MotionProfileContantsWriter("Descent");
+        driveConstants = new MotionProfileContantsWriter("Drive");
+        turnConstants = new MotionProfileContantsWriter("Turn");
 
         SmartDashboard.putData("Auto Chooser", modeChooser);
         SmartDashboard.putData("Drive Station Chooser", driveStationChooser);
@@ -222,6 +222,16 @@ public class SmartDashboardInteractions {
             networkTableEntry.setBoolean(state);
         }
 
+    }
+
+
+    public static void updateOverrides() {
+        cargoSensorOverride.update();
+        hatchSensorOverride.update();
+        curvatureDriveOverride.update();
+        elevatorEncoderOverride.update();
+        elevatorLimitSwitchOverride.update();
+        antiTipOverride.update();
     }
 
 

@@ -12,10 +12,10 @@ package frc.robot.vision;
  */
 public class TargetInfo {
 
-    public static final double DESIRED_TARGET_AREA = 0;
+    public static final double DESIRED_TARGET_AREA = 9;
     public static final double DESIRED_X_OFFSET = 0;
-    public static final double TARGET_AREA_THRESHOLD = 0;
-    public static final double X_OFFSET_THRESHOLD = 0;
+    public static final double TARGET_AREA_THRESHOLD = 1.5;
+    public static final double X_OFFSET_THRESHOLD = 8;
 
     private double xOffset;
     private double targetArea;
