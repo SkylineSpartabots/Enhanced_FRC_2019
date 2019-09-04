@@ -49,7 +49,7 @@ public class Xbox extends XboxController {
         TRIGGER_PRESS_THRESHOLD = pressThreshold;
     }
 
-    private double DEAD_BAND = 0.05;
+    private double DEAD_BAND = 0.08;
 
     public void setDeadband(double deadband) {
         DEAD_BAND = deadband;

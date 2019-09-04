@@ -139,8 +139,8 @@ public class Elevator extends Subsystem {
 
     private void configForAscent() {
         if(!configuredForAscent) {
-            elevatorPID.setConstants(0.00053, 0.002, 0.0);
-            elevatorPID.setMinMaxOutput(-0.3, 0.8);
+            elevatorPID.setConstants(0.00053, 0.0022, 0.0);
+            elevatorPID.setMinMaxOutput(-0.3, 0.73);
             elevatorPID.setIRange(1000);
             TelemetryUtil.print("Config for ascent", PrintStyle.INFO);
             configuredForAscent = true;
@@ -150,7 +150,7 @@ public class Elevator extends Subsystem {
     private void configForDescent() {
         if(configuredForAscent) {
             elevatorPID.setConstants(0.02, 0, 0);
-            elevatorPID.setMinMaxOutput(-0.35, 0.1);
+            elevatorPID.setMinMaxOutput(-0.3, 0.1);
             TelemetryUtil.print("Config for descent", PrintStyle.INFO);
             configuredForAscent = false;
         }
@@ -199,13 +199,14 @@ public class Elevator extends Subsystem {
     }
 
     public synchronized void setTargetHeight(double heightInFeet) {
-        setState(ControlState.Position);
+        
         if (heightInFeet > Constants.maxElevatorHeight) {
             heightInFeet = Constants.maxElevatorHeight;
         } else if (heightInFeet < Constants.minElevatorHeight) {
             heightInFeet = Constants.minElevatorHeight;
         }
         if (!SmartDashboardInteractions.elevatorEncoderOverride.get()) {
+            setState(ControlState.Position);
             if (heightInFeet > getHeight()) {
                 configForAscent();
             } else {
@@ -227,31 +228,22 @@ public class Elevator extends Subsystem {
     private double startTime = 0.0;
 
     public boolean hasReachedTargetHeight() {
-        if (master.getControlMode() == ControlMode.MotionMagic) {
             if (Math.abs(targetHeight - getHeight()) <= Constants.elevatorHeightTolerance) {
                 if (!onTarget)
                     onTarget = true;
                 return onTarget;
             }
-        }
         return false;
     }
 
     public synchronized void lockHeight() {
         setState(ControlState.Locked);
-        if (!SmartDashboardInteractions.elevatorEncoderOverride.get()) {
-            targetHeight = getHeight();
-            periodicIO.demand = periodicIO.position;
-            configForAscent();
-            elevatorPID.reset();
-            elevatorPID.setDesiredValue(periodicIO.demand);
-        } else {
-            TelemetryUtil.print("closed loop elevator controls disabled", PrintStyle.ERROR);
-            stop();
-        }
+        periodicIO.demand = periodicIO.position;
     }
 
     private double getLockPower() {
+        if(SmartDashboardInteractions.elevatorEncoderOverride.get()) 
+            return 0.15;
         return 0.15 + (0.0004 * (periodicIO.demand - periodicIO.position));
     }
 
@@ -259,7 +251,8 @@ public class Elevator extends Subsystem {
         if (SmartDashboardInteractions.antiTipOverride.get()) {
             return 1;
         }
-        return Math.abs(1 - (periodicIO.position * -0.00010725));
+        //return Math.abs(1 - (periodicIO.position * -0.00010725));
+        return 0;
     }
 
     public void resetToAbsolutePosition() {
@@ -372,13 +365,14 @@ public class Elevator extends Subsystem {
 
     @Override
     public synchronized void writePeriodicOutputs() {
-        if (periodicIO.demand <= 0 && periodicIO.position <= 250) {
+        if (periodicIO.demand <= 0 && periodicIO.position <= 250 && !SmartDashboardInteractions.elevatorEncoderOverride.get()) {
             if (getLimitSwitch()) {
                 master.set(ControlMode.PercentOutput, 0);
-            } else {
-                master.set(ControlMode.PercentOutput, -0.1);
+            } else if (!SmartDashboardInteractions.elevatorLimitSwitchOverride.get()) {
+                master.set(ControlMode.PercentOutput, -0.17);
+                TelemetryUtil.print("FIGHTING DOWN", PrintStyle.ERROR);
             }
-        } else if (getState() == ControlState.Position) {
+        } else if (getState() == ControlState.Position && !SmartDashboardInteractions.elevatorEncoderOverride.get()) {
             master.set(ControlMode.PercentOutput, elevatorPID.getOutput());
         } else if (getState() == ControlState.Locked) {
             master.set(ControlMode.PercentOutput, getLockPower());
@@ -403,13 +397,13 @@ public class Elevator extends Subsystem {
         SmartDashboard.putNumber("Right Elevator Current", master.getOutputCurrent());
         SmartDashboard.putNumber("Left Elevator Current", slave.getOutputCurrent());
         SmartDashboard.putNumber("Right Elevator Voltage", master.getMotorOutputVoltage());
-        SmartDashboard.putNumber("Left Elevator Voltage", slave.getMotorOutputVoltage());
+        SmartDashboard.putNumber("Left Elevator Voltage", slave.getMotorOutputVoltage());*/
         SmartDashboard.putNumber("Elevator Encoder", periodicIO.position);
         SmartDashboard.putNumber("Elevator Height", getHeight());
         SmartDashboard.putBoolean("Elevator Limit Switch", getLimitSwitch());
-        SmartDashboard.putNumber("Demand", periodicIO.demand);
-        SmartDashboard.putNumber("Desired Position", elevatorPID.getDesiredValue());
-        elevatorPID.disableDebug();*/
+        //SmartDashboard.putNumber("Demand", periodicIO.demand);
+        //SmartDashboard.putNumber("Desired Position", elevatorPID.getDesiredValue());
+        //elevatorPID.disableDebug();
 
     }
 

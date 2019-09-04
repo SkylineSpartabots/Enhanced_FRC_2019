@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.RobotState;
@@ -249,6 +250,11 @@ public class Superstructure extends Subsystem {
                 elevator.heightRequest(ElevatorHeights.FIRST_LEVEL.hatchPosition),
                 hatchMech.stateRequest(HatchMechanism.State.RECIEVING), intake.stateRequest(Intake.State.CARGO_PHOBIC)),
                 true);
+        RequestList queue = new RequestList(
+                    Arrays.asList(driveUntilHatchRequest(), 
+                    drive.openLoopRequest(new DriveSignal(-0.15, -0.15)), waitRequest(2), 
+                    drive.openLoopRequest(DriveSignal.BRAKE)),
+                    false);
         request(state);
     }
 
@@ -260,7 +266,7 @@ public class Superstructure extends Subsystem {
                     false);
         request(state);
         System.out.println("FINISHED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        //replaceQueue(queue);
+        replaceQueue(queue);
     }
 
     public void deployingState(ElevatorHeights height) {
@@ -269,17 +275,19 @@ public class Superstructure extends Subsystem {
                     Arrays.asList(drive.alignToTargetRequest(), elevator.heightRequest(height.hatchPosition),
                             hatchMech.stateRequest(HatchMechanism.State.STOWED), intake.stateRequest(Intake.State.OFF)),
                     true);
-            RequestList queue = new RequestList(Arrays.asList(hatchMech.stateRequest(HatchMechanism.State.SCORING),
+            RequestList queue = new RequestList(Arrays.asList(hatchMech.stateRequest(HatchMechanism.State.FINGERS_STOWED_EXTENDED), drive.timeDriveRequest(new DriveSignal(0.15, 0.15), 0.75),
+                    drive.openLoopRequest(DriveSignal.BRAKE), hatchMech.stateRequest(HatchMechanism.State.SCORING),
                     waitRequest(0.3), hatchMech.stateRequest(HatchMechanism.State.FINGERS_EXTENDED_RETRACTED), waitRequest(0.15),
                     hatchMech.stateRequest(HatchMechanism.State.STOWED), waitRequest(0.1), elevator.heightRequest(ElevatorHeights.DOWN.hatchPosition)), false);
             request(state);
             replaceQueue(queue);
-        } else if (Intake.getInstance().hasCargo()) {
+        } else if (true) {
             RequestList state = new RequestList(
                     Arrays.asList(drive.alignToTargetRequest(), elevator.heightRequest(height.cargoPosition),
                             hatchMech.stateRequest(HatchMechanism.State.STOWED), intake.stateRequest(Intake.State.OFF)),
                     true);
-            RequestList queue = new RequestList(Arrays.asList(intake.stateRequest(Intake.State.OUTAKE_ELEVATOR_UP),
+            RequestList queue = new RequestList(Arrays.asList(drive.timeDriveRequest(new DriveSignal(0.15, 0.15), 0.7),
+            drive.openLoopRequest(DriveSignal.BRAKE), intake.stateRequest(Intake.State.OUTAKE_ELEVATOR_UP),
                     waitRequest(0.3), intake.stateRequest(Intake.State.OFF),
                     elevator.heightRequest(ElevatorHeights.DOWN.hatchPosition)), false);
             request(state);
@@ -317,7 +325,7 @@ public class Superstructure extends Subsystem {
             @Override
             public void act() {
                 startTime = Timer.getFPGATimestamp();
-                drive.setOpenLoop(new DriveSignal(0.25, 0.25));
+                drive.setOpenLoop(new DriveSignal(0.2, 0.2));
                 hatchMech.conformToState(HatchMechanism.State.RECIEVING);
             }
 

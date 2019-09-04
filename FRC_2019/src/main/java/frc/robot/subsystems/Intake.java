@@ -120,8 +120,8 @@ public class Intake extends Subsystem {
         OUTAKE_WITH_KEBABS(-0.7, -0.7, true),
         INTAKE_WITHOUT_KEBABS(0.75, 0, false),
         OUTAKE_WITHOUT_KEBABS(-0.7, 0, false),
-        INTAKE_ELEVATOR_UP(0.1, 0, false),
-        OUTAKE_ELEVATOR_UP(-0.1, 0, false);
+        INTAKE_ELEVATOR_UP(0.35, 0, false),
+        OUTAKE_ELEVATOR_UP(-0.6, 0, false);
 
         public double innerIntakeSpeed = 0.0;
         public double kebabSpeed = 0.0;
@@ -295,6 +295,7 @@ public class Intake extends Subsystem {
         SmartDashboard.putBoolean("Kebab State", kebabSolenoid.get());
         SmartDashboard.putBoolean("Has Cargo", hasCargo());
         SmartDashboard.putBoolean("Raw Cargo", isCargoFromSensor());
+        SmartDashboard.putNumber("Beam Break Val", beamBreak.getValue());
         
     }
 

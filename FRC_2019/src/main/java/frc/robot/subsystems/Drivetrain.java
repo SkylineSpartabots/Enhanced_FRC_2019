@@ -56,7 +56,7 @@ public class Drivetrain extends Subsystem {
     }
 
     public static final double DRIVE_ENCODER_PPR = 1000;
-    public static final double DESIRED_TARGET_AREA = 9.5; //TODO
+    public static final double DESIRED_TARGET_AREA = 9; //TODO
     public static final double VISION_THRESHOLD = 0; //TODO
 
     private DriveControlState state;
@@ -434,6 +434,22 @@ public class Drivetrain extends Subsystem {
             @Override
             public void act() {
                 setOpenLoop(signal);
+            }
+        };
+    }
+
+    public Request timeDriveRequest(DriveSignal driveSignal, double time) {
+        return new Request(){
+            double startTime = 0;
+            @Override
+            public void act() {
+                startTime = Timer.getFPGATimestamp();
+                setOpenLoop(driveSignal);
+            }
+
+            @Override
+            public boolean isFinished() {
+                return (Timer.getFPGATimestamp() - startTime) >= time;
             }
         };
     }

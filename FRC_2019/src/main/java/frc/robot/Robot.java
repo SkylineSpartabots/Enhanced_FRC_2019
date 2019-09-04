@@ -26,11 +26,13 @@ import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.SubsystemManager;
 import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.HatchMechanism.State;
+import frc.robot.subsystems.Superstructure.ElevatorHeights;
 import frc.utils.CrashTracker;
 import frc.utils.Debouncer;
 import frc.utils.DriveControl;
 import frc.utils.DriveSignal;
 import frc.utils.TelemetryUtil;
+import frc.utils.Util;
 import frc.utils.TelemetryUtil.PrintStyle;
 
 /**
@@ -99,7 +101,7 @@ public class Robot extends TimedRobot {
     drive.zeroSensors();
     elevator.zeroSensors();
 
-
+    SmartDashboardInteractions.updateOverrides();
     //trajectoryGenerator.generateTrajectories();
   }
 
@@ -214,27 +216,26 @@ public class Robot extends TimedRobot {
       if(driver.xButton.wasActivated()) {
         s.requestTest();
       }
+      if(driver.aButton.wasActivated()) {
+        s.deployingState(ElevatorHeights.THIRD_LEVEL);
+      }
       return;
     }
 
-    if(operator.leftJoystickButton.isBeingPressed()) {
+    
+
+    if(operator.dpadRight.isBeingPressed()) {
       SmartDashboardInteractions.updateOverrides();
+      TelemetryUtil.print("UPDATING OVERRIDES", PrintStyle.ERROR);
     }
 
+    SmartDashboard.putBoolean("Cargo Sensor Override", SmartDashboardInteractions.cargoSensorOverride.get());
+    SmartDashboard.putBoolean("Limit Switch Override", SmartDashboardInteractions.elevatorLimitSwitchOverride.get());
   
 
-    double driveThrottle = driver.getY(Hand.kLeft)* elevator.getAntiTipCoeffecient();
+    double driveThrottle = driver.getY(Hand.kLeft) * elevator.getAntiTipCoeffecient();
     double turn = driver.getX(Hand.kRight) * elevator.getAntiTipCoeffecient();
-    
-    if(!SmartDashboardInteractions.curvatureDriveOverride.get()) {
-      SmartDashboard.putNumber("Drive", driveThrottle);
-      SmartDashboard.putNumber("Turn", turn);
-      SmartDashboard.putNumber("Manual Coeffecient", elevator.getAntiTipCoeffecient());
-      drive.setOpenLoop(driveControl.arcadeDrive(driveThrottle, turn));
-    } else {
-      boolean isQuickTurn = driver.getStartButton();
-      //drive.setOpenLoop(driveControl.curvatureDrive(driveThrottle, turn, isQuickTurn));
-    }
+    drive.setOpenLoop(driveControl.arcadeDrive(driveThrottle, turn));
     
     
     boolean hasCargo = intake.hasCargo();
@@ -336,8 +337,11 @@ public class Robot extends TimedRobot {
  
     double manualControlJoystick = operator.getY(Hand.kRight);
 
-
-    /*if (manualControlJoystick != 0) {
+    if(manualControlJoystick < -0.15) {
+      manualControlJoystick = -0.15;
+    } 
+    SmartDashboard.putNumber("Elevator Joystick", manualControlJoystick);
+    if (manualControlJoystick != 0) {
       elevator.setOpenLoop(manualControlJoystick);
     } else if (operator.aButton.wasActivated()) {
       elevator.setTargetHeight(Superstructure.ElevatorHeights.FIRST_LEVEL.getHeight());
@@ -351,7 +355,7 @@ public class Robot extends TimedRobot {
       elevator.setTargetHeight(Superstructure.ElevatorHeights.DOWN.getHeight());
     } else if (elevator.isOpenLoop()) {
       elevator.lockHeight();
-    }*/
+    }
 
   }
 
