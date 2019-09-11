@@ -18,9 +18,6 @@ import frc.utils.TelemetryUtil.PrintStyle;
  */
 public class PIDController {
     private double kP, kI, kD;
-    private double gainkP = 0, gainkI = 0, gainkD = 0;
-    private double setkP, setkI, setkD;
-    private double gainScheduleThreshold = 0;
     private double desiredValue;
     protected double prevError;
     private double errorSum;
@@ -61,12 +58,6 @@ public class PIDController {
         this.kD = kD;
     }
 
-    public void setGainSchedule(double threshold, double kP, double kI, double kD) {
-        gainScheduleThreshold = threshold;
-        this.gainkP = kP;
-        this.gainkI = kI;
-        this.gainkD = kD;
-    }
 
     public void setDesiredValue(double desiredValue) {
         this.desiredValue = desiredValue;
@@ -127,17 +118,6 @@ public class PIDController {
         double dVal = 0;
 
         double error = desiredValue - sensorInput.getAsDouble();
-        System.out.println(gainkP);
-        if(Math.abs(error) < gainScheduleThreshold) {
-            TelemetryUtil.print("Gain Scheduling", PrintStyle.ERROR);
-            setkP = gainkP;
-            setkI = gainkI;
-            setkD = gainkD;
-        } else {
-            setkP = kP;
-            setkI = kI;
-            setkD = kD;
-        }
 
         if(firstCycle) {
             prevError = error;
@@ -153,7 +133,7 @@ public class PIDController {
         deltaTime /= 20;
 
         //Calculate p value
-        pVal = error * setkP;
+        pVal = error * kP;
 
         //Calculate i value
         if(Math.abs(error) < Math.abs(iRange)) {
@@ -161,11 +141,11 @@ public class PIDController {
         } else {
             errorSum = 0;
         }
-        iVal = errorSum * setkI;
+        iVal = errorSum * kI;
 
         //Calculate d value
         double derivative = (error - prevError) / deltaTime;
-        dVal = setkD* derivative;
+        dVal = kD * derivative;
 
         //overall pid output
         double output  = pVal +iVal + dVal;
@@ -177,9 +157,9 @@ public class PIDController {
         prevError = error;
 
         if(debug) {
-            SmartDashboard.putNumber("kp", setkP);
-            SmartDashboard.putNumber("kI", setkI);
-            SmartDashboard.putNumber("kD", setkD);
+            SmartDashboard.putNumber("kp", kP);
+            SmartDashboard.putNumber("kI", kI);
+            SmartDashboard.putNumber("kD", kD);
             SmartDashboard.putNumber("P Out", pVal);
             SmartDashboard.putNumber("I Out", iVal);
             SmartDashboard.putNumber("D Out", dVal);

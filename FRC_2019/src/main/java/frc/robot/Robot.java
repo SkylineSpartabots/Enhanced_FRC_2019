@@ -188,12 +188,12 @@ public class Robot extends TimedRobot {
   }
 
   private boolean areKebabsDown = false;
-  private boolean wasElevatorUp = true;
-  private boolean holdingElevatorOverride = false;
 
   private void driveWithTwoControllers() {
 
-    /*if (operator.backButton.isBeingPressed()) {
+    if (operator.backButton.isBeingPressed()) {
+      limelight.ledsOn(true);
+      limelight.setVisionMode();
       if (operator.rightBumper.wasActivated()) {
         s.hatchRetrievingState();
       } else if (operator.aButton.wasActivated()) {
@@ -204,35 +204,24 @@ public class Robot extends TimedRobot {
         s.deployingState(Superstructure.ElevatorHeights.THIRD_LEVEL);
       } else if (operator.bButton.wasActivated()) {
         s.deployingState(Superstructure.ElevatorHeights.CARGO_SHIP);
-      }
-      return;
-    }*/
-
-    
-    if(driver.yButton.isBeingPressed()) {
-      if(driver.bButton.wasActivated()) {
-       drive.setVisionControl();
       } 
-      if(driver.xButton.wasActivated()) {
-        s.requestTest();
-      }
-      if(driver.aButton.wasActivated()) {
-        s.deployingState(ElevatorHeights.THIRD_LEVEL);
-      }
       return;
     }
 
-    
 
-    if(operator.dpadRight.isBeingPressed()) {
+    limelight.ledsOn(true);
+    limelight.setVisionMode();
+
+    if(operator.startButton.isBeingPressed()) {
       SmartDashboardInteractions.updateOverrides();
-      TelemetryUtil.print("UPDATING OVERRIDES", PrintStyle.ERROR);
+      SmartDashboard.putBoolean("Cargo Sensor Override", SmartDashboardInteractions.cargoSensorOverride.get());
+      SmartDashboard.putBoolean("Limit Switch Override", SmartDashboardInteractions.elevatorLimitSwitchOverride.get());
+      SmartDashboard.putBoolean("Antitip Override", SmartDashboardInteractions.antiTipOverride.get());
+      SmartDashboard.putBoolean("Hatch Sensor Override", SmartDashboardInteractions.hatchSensorOverride.get());
+      SmartDashboard.putBoolean("Elevator Encoder Override", SmartDashboardInteractions.elevatorEncoderOverride.get());
     }
 
-    SmartDashboard.putBoolean("Cargo Sensor Override", SmartDashboardInteractions.cargoSensorOverride.get());
-    SmartDashboard.putBoolean("Limit Switch Override", SmartDashboardInteractions.elevatorLimitSwitchOverride.get());
-  
-
+    
     double driveThrottle = driver.getY(Hand.kLeft) * elevator.getAntiTipCoeffecient();
     double turn = driver.getX(Hand.kRight) * elevator.getAntiTipCoeffecient();
     drive.setOpenLoop(driveControl.arcadeDrive(driveThrottle, turn));
@@ -241,11 +230,7 @@ public class Robot extends TimedRobot {
     boolean hasCargo = intake.hasCargo();
     boolean hasHatch = hatchMech.hasHatch();
     boolean elevatorUp = elevator.isElevatorUp();
-  
-    if(elevatorUp) {
-      holdingElevatorOverride = true;
-    }
-  
+ 
     /**
      * The following series of nested if statements is the control logic behind
      * setting the appropriate state of the intake state machine as determined by
@@ -256,7 +241,6 @@ public class Robot extends TimedRobot {
       areKebabsDown = false;
     } else if (operator.dpadDown.wasActivated()) {
       areKebabsDown = true;
-      holdingElevatorOverride = false;
     }
 
     if (areKebabsDown) {
@@ -271,7 +255,6 @@ public class Robot extends TimedRobot {
       if (hasHatch) {
         intake.conformToState(Intake.State.CARGO_PHOBIC);
       } else if (operator.rightTrigger.isBeingPressed()) {
-        holdingElevatorOverride = false;
         if (hasCargo) {
           if (elevatorUp) {
             intake.conformToState(Intake.State.INTAKE_ELEVATOR_UP);
@@ -282,23 +265,19 @@ public class Robot extends TimedRobot {
           intake.conformToState(Intake.State.INTAKE_WITHOUT_KEBABS);
         }
       } else if (operator.leftTrigger.isBeingPressed()) {
-        holdingElevatorOverride = false;
         if (hasCargo && elevatorUp) {
           intake.conformToState(Intake.State.OUTAKE_ELEVATOR_UP);
         } else {
           intake.conformToState(Intake.State.OUTAKE_WITHOUT_KEBABS);
         }
       } else {
-        if (hasCargo && !elevatorUp && !holdingElevatorOverride) {
-          intake.conformToState(Intake.State.HOLDING);
+        if (hasCargo && !elevatorUp) {
+          intake.conformToState(Intake.State.IDLE_WITHOUT_KEBABS);
         } else {
           intake.conformToState(Intake.State.OFF);
         }
       }
     }
-
-    wasElevatorUp = elevatorUp;
-    SmartDashboard.putBoolean("Uncontrolled Holding", wasElevatorUp);
 
     /**
      * The following is the logic for controlling the state of the hatch mechnanism

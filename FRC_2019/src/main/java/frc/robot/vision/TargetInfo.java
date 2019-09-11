@@ -12,7 +12,7 @@ package frc.robot.vision;
  */
 public class TargetInfo {
 
-    public static final double DESIRED_TARGET_AREA = 9;
+    private double desiredTargetArea = 9;
     public static final double DESIRED_X_OFFSET = 0;
     public static final double TARGET_AREA_THRESHOLD = 1.5;
     public static final double X_OFFSET_THRESHOLD = 8;
@@ -27,6 +27,10 @@ public class TargetInfo {
 
     public void setTargetArea(double targetArea) {
         this.targetArea = targetArea;
+    }
+
+    public void setDesiredTargetArea(double desiredTargetArea) {
+        this.desiredTargetArea = desiredTargetArea;
     }
 
     public void setTargetVisible(boolean isTargetVisible) {
@@ -46,7 +50,7 @@ public class TargetInfo {
     }
 
     public boolean hasReachedTarget() {
-        return Math.abs(getTargetArea() - DESIRED_TARGET_AREA) <= TARGET_AREA_THRESHOLD 
+        return Math.abs(getTargetArea() - desiredTargetArea) <= TARGET_AREA_THRESHOLD 
             && Math.abs(getXOffset() - DESIRED_X_OFFSET) <= X_OFFSET_THRESHOLD;
     }
 

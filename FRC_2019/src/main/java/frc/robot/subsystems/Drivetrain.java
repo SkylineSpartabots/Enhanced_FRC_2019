@@ -234,7 +234,6 @@ public class Drivetrain extends Subsystem {
             leftMaster.configNeutralDeadband(0.0, 0);
             rightMaster.configNeutralDeadband(0.0, 0);
             visionTurnPID.setConstants(0.012, 0.0, 0.0);
-            visionTurnPID.setGainSchedule(0, 0.016, 0.005, 0.0);
             visionDrivePID.setConstants(0.04, 0, 0);
             Limelight.getInstance().ledsOn(true);
             visionDrivePID.reset();

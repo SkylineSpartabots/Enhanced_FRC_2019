@@ -105,7 +105,7 @@ public class Elevator extends Subsystem {
         master.setSensorPhase(true);
 
         master.configReverseSoftLimitThreshold(Constants.elevatorEncoderStartingPosition);
-        master.configForwardSoftLimitThreshold(4662);
+        master.configForwardSoftLimitThreshold(4700);
         master.configReverseSoftLimitEnable(true);
         master.configForwardSoftLimitEnable(true);
 
@@ -139,7 +139,7 @@ public class Elevator extends Subsystem {
 
     private void configForAscent() {
         if(!configuredForAscent) {
-            elevatorPID.setConstants(0.00053, 0.0022, 0.0);
+            elevatorPID.setConstants(0.0005, 0.014, 0.0);
             elevatorPID.setMinMaxOutput(-0.3, 0.73);
             elevatorPID.setIRange(1000);
             TelemetryUtil.print("Config for ascent", PrintStyle.INFO);
@@ -251,8 +251,7 @@ public class Elevator extends Subsystem {
         if (SmartDashboardInteractions.antiTipOverride.get()) {
             return 1;
         }
-        //return Math.abs(1 - (periodicIO.position * -0.00010725));
-        return 0;
+        return Math.abs(1 - (periodicIO.position * -0.00010725));
     }
 
     public void resetToAbsolutePosition() {
@@ -361,6 +360,7 @@ public class Elevator extends Subsystem {
             periodicIO.voltage = master.getMotorOutputVoltage();
             periodicIO.current = master.getOutputCurrent();
         }
+        SmartDashboard.putNumber("Elevator Power", master.getMotorOutputPercent());
     }
 
     @Override
@@ -369,7 +369,7 @@ public class Elevator extends Subsystem {
             if (getLimitSwitch()) {
                 master.set(ControlMode.PercentOutput, 0);
             } else if (!SmartDashboardInteractions.elevatorLimitSwitchOverride.get()) {
-                master.set(ControlMode.PercentOutput, -0.17);
+                master.set(ControlMode.PercentOutput, -0.2);
                 TelemetryUtil.print("FIGHTING DOWN", PrintStyle.ERROR);
             }
         } else if (getState() == ControlState.Position && !SmartDashboardInteractions.elevatorEncoderOverride.get()) {
