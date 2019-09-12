@@ -14,11 +14,8 @@ import java.util.function.DoubleSupplier;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
-import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
-import com.ctre.phoenix.motorcontrol.StatusFrame;
-import com.ctre.phoenix.motorcontrol.VelocityMeasPeriod;
 
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -34,11 +31,8 @@ import frc.robot.subsystems.requests.Request;
 import frc.team254.lib.geometry.Pose2d;
 import frc.team254.lib.geometry.Pose2dWithCurvature;
 import frc.team254.lib.geometry.Rotation2d;
-import frc.team254.lib.trajectory.TrajectoryIterator;
 import frc.team254.lib.trajectory.timing.TimedState;
-import frc.team254.planners.DriveMotionPlanner;
 import frc.utils.DriveSignal;
-import frc.utils.Navx;
 import frc.utils.PIDController;
 import frc.utils.TelemetryUtil;
 import frc.utils.TelemetryUtil.PrintStyle;
@@ -70,8 +64,6 @@ public class Drivetrain extends Subsystem {
     private List<LazyTalonSRX> motors, masters, slaves;
 
     private boolean isBrakeMode;
-
-    private boolean stateChanged;
 
 
     private Drivetrain() {
@@ -112,8 +104,7 @@ public class Drivetrain extends Subsystem {
             //master.setStatusFramePeriod(StatusFrame.Status_2_Feedback0, 10, 10);
             //master.configVelocityMeasurementPeriod(VelocityMeasPeriod.Period_10Ms, 10);
             //master.configVelocityMeasurementWindow(32, 10);
-           //master.setSensorPhase(false); //TODO: set sensor direction
-            //TODO: add values
+           //master.setSensorPhase(false);
             /*//settings for motion profiling
             master.selectProfileSlot(0, 0);
             master.config_kP(0, kP);
@@ -129,8 +120,7 @@ public class Drivetrain extends Subsystem {
             master.config_kF(1, kF);*/
     }
 
-        //setCurrentLimit(40);
-        
+        setCurrentLimit(40);
 
         DoubleSupplier drivePIDSupplier = () -> RobotState.visionTarget.getTargetArea();
         visionDrivePID = new PIDController(SmartDashboardInteractions.driveConstants.getkP(),
@@ -138,18 +128,16 @@ public class Drivetrain extends Subsystem {
             SmartDashboardInteractions.driveConstants.getkD(), 0.005, drivePIDSupplier);
         visionDrivePID.setDesiredValue(DESIRED_TARGET_AREA);
         visionDrivePID.setMinMaxOutput(-0.2, 0.4);
-        //visionDrivePID.setIRange(0); //TODO: set appropriate I range
-        visionDrivePID.disableDebug();
+        //visionDrivePID.enableDebug();
         visionDrivePID.reset();
 
         DoubleSupplier turnPIDSupplier = () -> RobotState.visionTarget.getXOffset();
         visionTurnPID = new PIDController(SmartDashboardInteractions.turnConstants.getkP(),
         SmartDashboardInteractions.turnConstants.getkI(), 
-        SmartDashboardInteractions.turnConstants.getkD(), 1.0, turnPIDSupplier); //TODO: Add PID and range values
+        SmartDashboardInteractions.turnConstants.getkD(), 1.0, turnPIDSupplier);
         visionTurnPID.setDesiredValue(0);
         visionTurnPID.setMinMaxOutput(-0.35, 0.35);
-        //visionTurnPID.setIRange(0); //TODO: set appropriate I range
-        visionTurnPID.enableDebug();
+        //visionTurnPID.enableDebug();
         visionTurnPID.reset();
 
 
@@ -413,12 +401,14 @@ public class Drivetrain extends Subsystem {
     
     @Override
     public void outputTelemetry() {
+        if(Constants.showDebugOutput) {
             SmartDashboard.putNumber("Left Front Current", leftSlaveA.getMotorOutputPercent());
             SmartDashboard.putNumber("Left Center Current", leftMaster.getMotorOutputPercent());
             SmartDashboard.putNumber("Left Back Current", leftSlaveB.getMotorOutputPercent());
             SmartDashboard.putNumber("Right Front Current", rightSlaveA.getMotorOutputPercent());
             SmartDashboard.putNumber("Right Center Current", rightMaster.getMotorOutputPercent());
             SmartDashboard.putNumber("Right Back Current", rightSlaveB.getMotorOutputPercent());
+        }
     }
 
     @Override

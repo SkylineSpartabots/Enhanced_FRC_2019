@@ -8,10 +8,10 @@
 package frc.robot;
 
 import java.util.Arrays;
-import java.util.function.BooleanSupplier;
 
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.controllers.Xbox;
 import frc.robot.auto.AutoModeExecuter;
@@ -26,14 +26,8 @@ import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.SubsystemManager;
 import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.HatchMechanism.State;
-import frc.robot.subsystems.Superstructure.ElevatorHeights;
 import frc.utils.CrashTracker;
-import frc.utils.Debouncer;
 import frc.utils.DriveControl;
-import frc.utils.DriveSignal;
-import frc.utils.TelemetryUtil;
-import frc.utils.Util;
-import frc.utils.TelemetryUtil.PrintStyle;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -42,24 +36,20 @@ import frc.utils.TelemetryUtil.PrintStyle;
  * creating this project, you must also update the build.gradle file in the
  * project.
  */
+
 public class Robot extends TimedRobot {
-  /**
-   * This function is run when the robot is first started up and should be used
-   * for any initialization code.
-   */
 
   private Drivetrain drive;
   private Elevator elevator;
   private Intake intake;
   private HatchMechanism hatchMech;
 
- private Superstructure s;
+  private Superstructure s;
   private SubsystemManager subsystems;
   private RobotState robotState;
   private Limelight limelight;
 
   private AutoModeExecuter autoModeExecuter;
-  private TrajectoryGenerator trajectoryGenerator;
   private SmartDashboardInteractions smartDashboardInteractions;
 
   private Looper enabledLooper = new Looper();
@@ -67,9 +57,7 @@ public class Robot extends TimedRobot {
 
   private Xbox driver, operator;
   private DriveControl driveControl;
-  private boolean useOneController = false;
-
-  
+  private boolean useOneController = false;  
 
   @Override
   public void robotInit() {
@@ -85,7 +73,6 @@ public class Robot extends TimedRobot {
     elevator = elevator.getInstance();
     s = Superstructure.getInstance();
     robotState = RobotState.getInstance();
-    //trajectoryGenerator = TrajectoryGenerator.getInstance();
     driveControl = new DriveControl();
     subsystems = new SubsystemManager(Arrays.asList(drive, elevator, intake, hatchMech, s)); 
     limelight = limelight.getInstance();
@@ -192,6 +179,8 @@ public class Robot extends TimedRobot {
   private void driveWithTwoControllers() {
 
     if (operator.backButton.isBeingPressed()) {
+      driver.setRumble(RumbleType.kLeftRumble, 0.3);
+      operator.setRumble(RumbleType.kLeftRumble, 0.3);
       limelight.ledsOn(true);
       limelight.setVisionMode();
       if (operator.rightBumper.wasActivated()) {
@@ -208,8 +197,11 @@ public class Robot extends TimedRobot {
       return;
     }
 
+    driver.setRumble(RumbleType.kLeftRumble, 0);
+    operator.setRumble(RumbleType.kLeftRumble, 0);
 
-    limelight.ledsOn(true);
+
+    limelight.ledsOn(false);
     limelight.setVisionMode();
 
     if(operator.startButton.isBeingPressed()) {
@@ -318,8 +310,7 @@ public class Robot extends TimedRobot {
 
     if(manualControlJoystick < -0.15) {
       manualControlJoystick = -0.15;
-    } 
-    SmartDashboard.putNumber("Elevator Joystick", manualControlJoystick);
+    }
     if (manualControlJoystick != 0) {
       elevator.setOpenLoop(manualControlJoystick);
     } else if (operator.aButton.wasActivated()) {
@@ -330,7 +321,7 @@ public class Robot extends TimedRobot {
       elevator.setTargetHeight(Superstructure.ElevatorHeights.THIRD_LEVEL.getHeight());
     } else if (operator.bButton.wasActivated()) {
       elevator.setTargetHeight(Superstructure.ElevatorHeights.CARGO_SHIP.getHeight());
-    } else if (operator.rightBumper.wasActivated()){
+    } else if (operator.leftBumper.wasActivated()){
       elevator.setTargetHeight(Superstructure.ElevatorHeights.DOWN.getHeight());
     } else if (elevator.isOpenLoop()) {
       elevator.lockHeight();

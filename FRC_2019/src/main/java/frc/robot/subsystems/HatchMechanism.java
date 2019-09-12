@@ -181,15 +181,12 @@ public class HatchMechanism extends Subsystem {
 
     @Override
     public void outputTelemetry() {
-        SmartDashboard.putBoolean("Fingers State", fingers.get());
-        SmartDashboard.putBoolean("Slider State", slider.get());
-        SmartDashboard.putBoolean("Jacks State", jacks.get());
-        SmartDashboard.putNumber("Raw Distance Sensor", hatchDistanceSensor.getValue());
         SmartDashboard.putBoolean("Has hatch", hasHatch());
         if (Constants.showDebugOutput) {
             SmartDashboard.putBoolean("Fingers State", fingers.get());
             SmartDashboard.putBoolean("Slider State", slider.get());
             SmartDashboard.putBoolean("Jacks State", jacks.get());
+            SmartDashboard.putNumber("Raw Distance Sensor", hatchDistanceSensor.getValue());
         }
     }
 

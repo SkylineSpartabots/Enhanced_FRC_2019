@@ -41,21 +41,6 @@ public class Limelight implements Loop {
 
     }
 
-    public enum Pipelines {
-        STANDARD(0),
-        CARGO(1);
-
-        private double pipelineID;
-
-        private Pipelines(double pipelineID) {
-            this.pipelineID = pipelineID;
-        }
-        public double getID() {
-            return pipelineID;
-        }
-
-    };
-
     @Override
     public void onStart(double timestamp) {
         limelightTable = NetworkTableInstance.getDefault().getTable("limelight");
@@ -68,12 +53,6 @@ public class Limelight implements Loop {
             limelightTable.getEntry("ta"), limelightTable.getEntry("tv"));
     }
 
-    public void setPipeline(Pipelines limelightPipeline) {
-        double id = limelightPipeline.getID();
-        if(id != pipeline.getDouble(10)) {
-            pipeline.setNumber(id);
-        }
-    }
 
     public void ledsOn(boolean on){
         if(ledMode.getDouble(1) != 0 && on) {
@@ -84,10 +63,12 @@ public class Limelight implements Loop {
     }
 
     public void setVisionMode() {
+        updateVision = true;
         camMode.setNumber(0);     
     }
 
     public void setDriverMode() {
+        updateVision = false;
         camMode.setNumber(1);
     }
 

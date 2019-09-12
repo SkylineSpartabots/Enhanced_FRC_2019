@@ -17,7 +17,6 @@ import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.drivers.LazyTalonSRX;
 import frc.robot.Constants;
@@ -28,7 +27,6 @@ import frc.robot.loops.Loop;
 import frc.robot.subsystems.requests.Request;
 import frc.utils.PIDController;
 import frc.utils.TelemetryUtil;
-import frc.utils.Util;
 import frc.utils.TelemetryUtil.PrintStyle;
 
 /**
@@ -217,7 +215,6 @@ public class Elevator extends Subsystem {
             elevatorPID.reset();
             elevatorPID.setDesiredValue(periodicIO.demand);
             onTarget = false;
-            startTime = Timer.getFPGATimestamp();
         } else {
             TelemetryUtil.print("closed loop elevator controls disabled", PrintStyle.ERROR);
             stop();
@@ -225,7 +222,6 @@ public class Elevator extends Subsystem {
     }
 
     private boolean onTarget = false;
-    private double startTime = 0.0;
 
     public boolean hasReachedTargetHeight() {
             if (Math.abs(targetHeight - getHeight()) <= Constants.elevatorHeightTolerance) {
@@ -295,7 +291,6 @@ public class Elevator extends Subsystem {
         return isElevatorUp;
     }
 
-    private boolean limitSwitchChangedState = false;
     private boolean isElevatorUp = false;
     private double elevatorUpBeganTimestamp = 0;
 
@@ -360,7 +355,6 @@ public class Elevator extends Subsystem {
             periodicIO.voltage = master.getMotorOutputVoltage();
             periodicIO.current = master.getOutputCurrent();
         }
-        SmartDashboard.putNumber("Elevator Power", master.getMotorOutputPercent());
     }
 
     @Override
@@ -369,8 +363,8 @@ public class Elevator extends Subsystem {
             if (getLimitSwitch()) {
                 master.set(ControlMode.PercentOutput, 0);
             } else if (!SmartDashboardInteractions.elevatorLimitSwitchOverride.get()) {
-                master.set(ControlMode.PercentOutput, -0.2);
-                TelemetryUtil.print("FIGHTING DOWN", PrintStyle.ERROR);
+                master.set(ControlMode.PercentOutput, -0.17);
+                TelemetryUtil.print("ELEVATOR POWER DOWN TO LIMIT SWITCH", PrintStyle.WARNING);
             }
         } else if (getState() == ControlState.Position && !SmartDashboardInteractions.elevatorEncoderOverride.get()) {
             master.set(ControlMode.PercentOutput, elevatorPID.getOutput());
@@ -389,21 +383,20 @@ public class Elevator extends Subsystem {
     @Override
     public void outputTelemetry() {
         if (Constants.showDebugOutput) {
-
+            SmartDashboard.putNumber("Slave Output", slave.getMotorOutputPercent());
+            SmartDashboard.putNumber("Elevator Output", master.getMotorOutputPercent());
+            SmartDashboard.putNumber("Right Elevator Current", master.getOutputCurrent());
+            SmartDashboard.putNumber("Left Elevator Current", slave.getOutputCurrent());
+            SmartDashboard.putNumber("Right Elevator Voltage", master.getMotorOutputVoltage());
+            SmartDashboard.putNumber("Left Elevator Voltage", slave.getMotorOutputVoltage());
+            SmartDashboard.putNumber("Demand", periodicIO.demand);
+            SmartDashboard.putNumber("Desired Position", elevatorPID.getDesiredValue());
+            SmartDashboard.putNumber("Elevator Encoder", periodicIO.position);
+            elevatorPID.enableDebug();
         }
-
-        /*SmartDashboard.putNumber("Slave Output", slave.getMotorOutputPercent());
-        SmartDashboard.putNumber("Elevator Output", master.getMotorOutputPercent());
-        SmartDashboard.putNumber("Right Elevator Current", master.getOutputCurrent());
-        SmartDashboard.putNumber("Left Elevator Current", slave.getOutputCurrent());
-        SmartDashboard.putNumber("Right Elevator Voltage", master.getMotorOutputVoltage());
-        SmartDashboard.putNumber("Left Elevator Voltage", slave.getMotorOutputVoltage());*/
-        SmartDashboard.putNumber("Elevator Encoder", periodicIO.position);
+    
         SmartDashboard.putNumber("Elevator Height", getHeight());
         SmartDashboard.putBoolean("Elevator Limit Switch", getLimitSwitch());
-        //SmartDashboard.putNumber("Demand", periodicIO.demand);
-        //SmartDashboard.putNumber("Desired Position", elevatorPID.getDesiredValue());
-        //elevatorPID.disableDebug();
 
     }
 

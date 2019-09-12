@@ -16,7 +16,6 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
 
 import edu.wpi.first.wpilibj.AnalogInput;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.drivers.LazySolenoid;
 import frc.drivers.LazyTalonSRX;
@@ -137,7 +136,6 @@ public class Intake extends Subsystem {
     private State currentState = State.OFF;
     private boolean stateChanged = false;
     private double beamBreakSensorBeganTimestamp = Double.POSITIVE_INFINITY;
-    private double stateEnteredTimestamp = 0;
 
     public State getState() {
         return currentState;
@@ -147,7 +145,6 @@ public class Intake extends Subsystem {
         if (newState != currentState)
             stateChanged = true;
         currentState = newState;
-        stateEnteredTimestamp = Timer.getFPGATimestamp();
     }
 
     public synchronized void setInnerIntakeSpeed(double output) {
@@ -277,7 +274,6 @@ public class Intake extends Subsystem {
     @Override
     public void outputTelemetry() {
         if(Constants.showDebugOutput) {
-            SmartDashboard.putBoolean("Has Cargo", hasCargo());
             SmartDashboard.putBoolean("Raw Cargo", isCargoFromSensor());
             SmartDashboard.putNumber("Inner Intake Current", innerIntakeMotor.getOutputCurrent());
             SmartDashboard.putNumber("Inner Intake Voltage", innerIntakeMotor.getMotorOutputVoltage());
@@ -290,12 +286,11 @@ public class Intake extends Subsystem {
             SmartDashboard.putNumber("Left Kebab Current", slaveKebab.getOutputCurrent());
             SmartDashboard.putNumber("Left Kebab Voltage", slaveKebab.getMotorOutputVoltage());
             SmartDashboard.putNumber("Left Kebab Output", slaveKebab.getMotorOutputPercent());
+        
+            SmartDashboard.putBoolean("Kebab State", kebabSolenoid.get());
         }
-
-        SmartDashboard.putBoolean("Kebab State", kebabSolenoid.get());
+   
         SmartDashboard.putBoolean("Has Cargo", hasCargo());
-        SmartDashboard.putBoolean("Raw Cargo", isCargoFromSensor());
-        SmartDashboard.putNumber("Beam Break Val", beamBreak.getValue());
         
     }
 

@@ -11,7 +11,6 @@ import java.util.Map;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.auto.SmartDashboardInteractions.DriveStation;
-import frc.robot.subsystems.Drivetrain;
 import frc.robot.vision.TargetInfo;
 import frc.team254.lib.geometry.Pose2d;
 import frc.team254.lib.geometry.Twist2d;
@@ -122,8 +121,8 @@ public class RobotState {
         //SmartDashboard.putNumber("Robot Pose Theta", odometry.getRotation().getDegrees());
         //SmartDashboard.putNumber("Robot Linear Velocity", measuredVelocity.dx);
         SmartDashboard.putBoolean("Is Target Visible", visionTarget.isTargetVisible());
-        SmartDashboard.putNumber("Target Area", visionTarget.getTargetArea());
-        SmartDashboard.putNumber("Target Angular Displacement", visionTarget.getXOffset());
+        //SmartDashboard.putNumber("Target Area", visionTarget.getTargetArea());
+        //SmartDashboard.putNumber("Target Angular Displacement", visionTarget.getXOffset());
     }
 
 
