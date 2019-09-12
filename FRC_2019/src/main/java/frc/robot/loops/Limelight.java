@@ -37,6 +37,10 @@ public class Limelight implements Loop {
         updateVision = enable;
     }
 
+    public boolean canVision() {
+        return updateVision;
+    }
+
     private Limelight() {
 
     }
@@ -63,12 +67,10 @@ public class Limelight implements Loop {
     }
 
     public void setVisionMode() {
-        updateVision = true;
         camMode.setNumber(0);     
     }
 
     public void setDriverMode() {
-        updateVision = false;
         camMode.setNumber(1);
     }
 

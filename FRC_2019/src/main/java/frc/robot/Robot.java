@@ -28,6 +28,8 @@ import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.HatchMechanism.State;
 import frc.utils.CrashTracker;
 import frc.utils.DriveControl;
+import frc.utils.TelemetryUtil;
+import frc.utils.TelemetryUtil.PrintStyle;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -57,7 +59,7 @@ public class Robot extends TimedRobot {
 
   private Xbox driver, operator;
   private DriveControl driveControl;
-  private boolean useOneController = false;  
+  private boolean useOneController = false;
 
   @Override
   public void robotInit() {
@@ -74,7 +76,7 @@ public class Robot extends TimedRobot {
     s = Superstructure.getInstance();
     robotState = RobotState.getInstance();
     driveControl = new DriveControl();
-    subsystems = new SubsystemManager(Arrays.asList(drive, elevator, intake, hatchMech, s)); 
+    subsystems = new SubsystemManager(Arrays.asList(drive, elevator, intake, hatchMech, s));
     limelight = limelight.getInstance();
 
     driver = new Xbox(0);
@@ -89,12 +91,12 @@ public class Robot extends TimedRobot {
     elevator.zeroSensors();
 
     SmartDashboardInteractions.updateOverrides();
-    //trajectoryGenerator.generateTrajectories();
+    // trajectoryGenerator.generateTrajectories();
   }
 
   public void allPeriodic() {
     subsystems.outputToSmartDashboard();
-    //robotState.outputToSmartDashboard();
+    // robotState.outputToSmartDashboard();
     enabledLooper.outputToSmartDashboard();
   }
 
@@ -140,8 +142,6 @@ public class Robot extends TimedRobot {
       driver.update();
       operator.update();
 
-      
-
       if (useOneController)
         driveWithOneController();
       else
@@ -179,32 +179,39 @@ public class Robot extends TimedRobot {
   private void driveWithTwoControllers() {
 
     if (operator.backButton.isBeingPressed()) {
-      driver.setRumble(RumbleType.kLeftRumble, 0.3);
-      operator.setRumble(RumbleType.kLeftRumble, 0.3);
-      limelight.ledsOn(true);
-      limelight.setVisionMode();
-      if (operator.rightBumper.wasActivated()) {
-        s.hatchRetrievingState();
-      } else if (operator.aButton.wasActivated()) {
-        s.deployingState(Superstructure.ElevatorHeights.FIRST_LEVEL);
-      } else if (operator.xButton.wasActivated()) {
-        s.deployingState(Superstructure.ElevatorHeights.SECOND_LEVEL);
-      } else if (operator.yButton.wasActivated()) {
-        s.deployingState(Superstructure.ElevatorHeights.THIRD_LEVEL);
-      } else if (operator.bButton.wasActivated()) {
-        s.deployingState(Superstructure.ElevatorHeights.CARGO_SHIP);
-      } 
-      return;
+      if (limelight.canVision()) {
+        driver.setRumble(RumbleType.kLeftRumble, 0.3);
+        operator.setRumble(RumbleType.kLeftRumble, 0.3);
+        limelight.ledsOn(true);
+        limelight.setVisionMode();
+        if (operator.rightBumper.wasActivated()) {
+          s.hatchRetrievingState();
+        } else if (operator.aButton.wasActivated()) {
+          s.deployingState(Superstructure.ElevatorHeights.FIRST_LEVEL);
+        } else if (operator.xButton.wasActivated()) {
+          s.deployingState(Superstructure.ElevatorHeights.SECOND_LEVEL);
+        } else if (operator.yButton.wasActivated()) {
+          s.deployingState(Superstructure.ElevatorHeights.THIRD_LEVEL);
+        } else if (operator.bButton.wasActivated()) {
+          s.deployingState(Superstructure.ElevatorHeights.CARGO_SHIP);
+        }
+        return;
+      } else {
+        TelemetryUtil.print("Normal VISION has been DISABLED by overrides", PrintStyle.WARNING);
+        if(operator.rightBumper.isBeingPressed()) {
+          s.alignToTarget();
+          return;
+        }
+      }
     }
 
     driver.setRumble(RumbleType.kLeftRumble, 0);
     operator.setRumble(RumbleType.kLeftRumble, 0);
 
-
     limelight.ledsOn(false);
     limelight.setVisionMode();
 
-    if(operator.startButton.isBeingPressed()) {
+    if (operator.startButton.isBeingPressed()) {
       SmartDashboardInteractions.updateOverrides();
       SmartDashboard.putBoolean("Cargo Sensor Override", SmartDashboardInteractions.cargoSensorOverride.get());
       SmartDashboard.putBoolean("Limit Switch Override", SmartDashboardInteractions.elevatorLimitSwitchOverride.get());
@@ -213,22 +220,20 @@ public class Robot extends TimedRobot {
       SmartDashboard.putBoolean("Elevator Encoder Override", SmartDashboardInteractions.elevatorEncoderOverride.get());
     }
 
-    
     double driveThrottle = driver.getY(Hand.kLeft) * elevator.getAntiTipCoeffecient();
     double turn = driver.getX(Hand.kRight) * elevator.getAntiTipCoeffecient();
     drive.setOpenLoop(driveControl.arcadeDrive(driveThrottle, turn));
-    
-    
+
     boolean hasCargo = intake.hasCargo();
     boolean hasHatch = hatchMech.hasHatch();
     boolean elevatorUp = elevator.isElevatorUp();
- 
+
     /**
      * The following series of nested if statements is the control logic behind
      * setting the appropriate state of the intake state machine as determined by
      * operator gamepad
      */
-    
+
     if (operator.dpadUp.wasActivated() || elevatorUp || hasCargo || hasHatch) {
       areKebabsDown = false;
     } else if (operator.dpadDown.wasActivated()) {
@@ -280,11 +285,10 @@ public class Robot extends TimedRobot {
      * drive method because this function has utility in auto programs as well
      */
 
-
     if (hasCargo) {
       hatchMech.conformToState(HatchMechanism.State.STOWED);
     } else {
-      if(driver.backButton.wasActivated()) {
+      if (driver.backButton.wasActivated()) {
         hatchMech.conformToState(HatchMechanism.State.STOWED);
       } else if (driver.leftBumper.wasActivated()) {
         hatchMech.conformToState(HatchMechanism.State.RECIEVING);
@@ -305,10 +309,9 @@ public class Robot extends TimedRobot {
      * machine as determined by operator gamepad
      */
 
- 
     double manualControlJoystick = operator.getY(Hand.kRight);
 
-    if(manualControlJoystick < -0.15) {
+    if (manualControlJoystick < -0.15) {
       manualControlJoystick = -0.15;
     }
     if (manualControlJoystick != 0) {
@@ -321,7 +324,7 @@ public class Robot extends TimedRobot {
       elevator.setTargetHeight(Superstructure.ElevatorHeights.THIRD_LEVEL.getHeight());
     } else if (operator.bButton.wasActivated()) {
       elevator.setTargetHeight(Superstructure.ElevatorHeights.CARGO_SHIP.getHeight());
-    } else if (operator.leftBumper.wasActivated()){
+    } else if (operator.leftBumper.wasActivated()) {
       elevator.setTargetHeight(Superstructure.ElevatorHeights.DOWN.getHeight());
     } else if (elevator.isOpenLoop()) {
       elevator.lockHeight();

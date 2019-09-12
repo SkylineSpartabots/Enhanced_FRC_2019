@@ -223,7 +223,7 @@ public class Superstructure extends Subsystem {
     };
 
     public RequestList disabledRequest() {
-        return new RequestList(Arrays.asList(elevator.openLoopRequest(0.0), intake.stateRequest(Intake.State.OFF),
+        return new RequestList(Arrays.asList(drive.openLoopRequest(DriveSignal.BRAKE), elevator.openLoopRequest(0.0), intake.stateRequest(Intake.State.OFF),
                 hatchMech.stateRequest(HatchMechanism.State.STOWED)), true);
     }
 
@@ -286,6 +286,12 @@ public class Superstructure extends Subsystem {
             }
         }
 
+    }
+
+    public void alignToTarget() {
+        if(RobotState.visionTarget.isTargetVisible()) {
+            request(drive.alignToTargetRequest());
+        }
     }
 
 

@@ -19,6 +19,7 @@ import frc.robot.auto.modes.DoubleCargoShip;
 import frc.robot.auto.modes.DoubleRocketShip;
 import frc.robot.auto.modes.SingleCargoShip;
 import frc.robot.auto.modes.StandStill;
+import frc.robot.loops.Limelight;
 import frc.utils.TelemetryUtil;
 import frc.utils.TelemetryUtil.PrintStyle;
 
@@ -224,6 +225,14 @@ public class SmartDashboardInteractions {
 
     }
 
+    private static void setVisionEnabledState() {
+        if((hatchSensorOverride.get() && cargoSensorOverride.get()) || elevatorEncoderOverride.get()) {
+            Limelight.getInstance().enableUpdates(false);
+        } else {
+            Limelight.getInstance().enableUpdates(true);
+        }
+    }
+
 
     public static void updateOverrides() {
         allOverride.update();  
@@ -234,13 +243,12 @@ public class SmartDashboardInteractions {
             antiTipOverride.set(true);
             elevatorEncoderOverride.set(true);
         }
-
         elevatorEncoderOverride.update();
         elevatorLimitSwitchOverride.update();
         antiTipOverride.update();
         cargoSensorOverride.update();
         hatchSensorOverride.update();
-
+        setVisionEnabledState();
     }
 
 
