@@ -294,6 +294,11 @@ public class Superstructure extends Subsystem {
         }
     }
 
+    public void clearRequests() {
+        queuedRequests.clear();
+        activeRequests = new RequestList();
+    }
+
 
     private static boolean hasHatchByDeduction() {
         if (Intake.getInstance().hasCargo() && !HatchMechanism.getInstance().hasHatch()) {

@@ -257,6 +257,11 @@ public class Xbox extends XboxController {
         }
     }
 
+    public void rumble(double rumblePower) {
+        setRumble(RumbleType.kLeftRumble, rumblePower);
+        setRumble(RumbleType.kRightRumble, rumblePower);
+    }
+
     public boolean isRumbling() {
         return rumbling;
     }

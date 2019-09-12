@@ -96,7 +96,7 @@ public class Robot extends TimedRobot {
 
   public void allPeriodic() {
     subsystems.outputToSmartDashboard();
-    // robotState.outputToSmartDashboard();
+    robotState.outputToSmartDashboard();
     enabledLooper.outputToSmartDashboard();
   }
 
@@ -109,11 +109,13 @@ public class Robot extends TimedRobot {
       disabledLooper.stop();
       enabledLooper.start();
 
-      SmartDashboard.putBoolean("Auto", true);
+      /*SmartDashboard.putBoolean("Auto", true);
 
       autoModeExecuter = new AutoModeExecuter();
       autoModeExecuter.setAutoMode(smartDashboardInteractions.getSelectedAutoMode());
-      autoModeExecuter.start();
+      autoModeExecuter.start();*/
+
+
     } catch (Throwable t) {
       CrashTracker.logThrowableCrash(t);
       throw t;
@@ -122,7 +124,22 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousPeriodic() {
-    allPeriodic();
+    try {
+      driver.update();
+      operator.update();
+
+      if (useOneController)
+        driveWithOneController();
+      else
+        driveWithTwoControllers();
+
+      SmartDashboard.putBoolean("Robot Emergency", subsystems.hasEmergency());
+      robotState.outputToSmartDashboard();
+      allPeriodic();
+    } catch (Throwable t) {
+      CrashTracker.logThrowableCrash(t);
+      throw t;
+    }
   }
 
   @Override
@@ -130,7 +147,7 @@ public class Robot extends TimedRobot {
     try {
       disabledLooper.stop();
       enabledLooper.start();
-      SmartDashboard.putBoolean("Auto", false);
+      //SmartDashboard.putBoolean("Auto", false);
     } catch (Throwable t) {
       CrashTracker.logThrowableCrash(t);
     }
@@ -180,8 +197,9 @@ public class Robot extends TimedRobot {
 
     if (operator.backButton.isBeingPressed()) {
       if (limelight.canVision()) {
-        driver.setRumble(RumbleType.kLeftRumble, 0.3);
-        operator.setRumble(RumbleType.kLeftRumble, 0.3);
+        driver.rumble(0.3);
+        operator.rumble(0.3);
+
         limelight.ledsOn(true);
         limelight.setVisionMode();
         if (operator.rightBumper.wasActivated()) {
@@ -197,16 +215,22 @@ public class Robot extends TimedRobot {
         }
         return;
       } else {
-        TelemetryUtil.print("Normal VISION has been DISABLED by overrides", PrintStyle.WARNING);
+        TelemetryUtil.print("Normal VISION is DISABLED by OVERRIDES", PrintStyle.WARNING);
         if(operator.rightBumper.isBeingPressed()) {
+          driver.rumble(0.3);
+          operator.rumble(0.3);
           s.alignToTarget();
           return;
         }
       }
     }
 
-    driver.setRumble(RumbleType.kLeftRumble, 0);
-    operator.setRumble(RumbleType.kLeftRumble, 0);
+    if(!s.requestsCompleted()) {
+      s.clearRequests();
+    }
+
+    driver.rumble(0);
+    operator.rumble(0);
 
     limelight.ledsOn(false);
     limelight.setVisionMode();
