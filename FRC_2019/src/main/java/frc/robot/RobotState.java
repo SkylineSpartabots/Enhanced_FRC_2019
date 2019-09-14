@@ -121,7 +121,7 @@ public class RobotState {
         //SmartDashboard.putNumber("Robot Pose Theta", odometry.getRotation().getDegrees());
         //SmartDashboard.putNumber("Robot Linear Velocity", measuredVelocity.dx);
         SmartDashboard.putBoolean("Is Target Visible", visionTarget.isTargetVisible());
-        //SmartDashboard.putNumber("Target Area", visionTarget.getTargetArea());
+        SmartDashboard.putNumber("Target Area", visionTarget.getTargetArea());
         //SmartDashboard.putNumber("Target Angular Displacement", visionTarget.getXOffset());
     }
 

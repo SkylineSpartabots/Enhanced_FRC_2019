@@ -28,6 +28,7 @@ import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.HatchMechanism.State;
 import frc.utils.CrashTracker;
 import frc.utils.DriveControl;
+import frc.utils.DriveSignal;
 import frc.utils.TelemetryUtil;
 import frc.utils.TelemetryUtil.PrintStyle;
 
@@ -192,10 +193,18 @@ public class Robot extends TimedRobot {
   }
 
   private boolean areKebabsDown = false;
+  private boolean enteringVisionState = false;
 
   private void driveWithTwoControllers() {
 
     if (operator.backButton.isBeingPressed()) {
+
+      if(enteringVisionState) {
+        drive.setOpenLoop(DriveSignal.NEUTRAL);
+        elevator.setOpenLoop(0);
+      }
+      enteringVisionState = false;
+
       if (limelight.canVision()) {
         driver.rumble(0.3);
         operator.rumble(0.3);
@@ -225,15 +234,19 @@ public class Robot extends TimedRobot {
       }
     }
 
-    if(!s.requestsCompleted()) {
+    if(!enteringVisionState) {
+      enteringVisionState = true;
       s.clearRequests();
     }
+
+
+    
 
     driver.rumble(0);
     operator.rumble(0);
 
     limelight.ledsOn(false);
-    limelight.setVisionMode();
+    limelight.setDriverMode();
 
     if (operator.startButton.isBeingPressed()) {
       SmartDashboardInteractions.updateOverrides();
@@ -320,7 +333,7 @@ public class Robot extends TimedRobot {
         hatchMech.conformToState(HatchMechanism.State.SCORING);
       } else if (hatchMech.getState() == HatchMechanism.State.STOWED
           || hatchMech.getState() == HatchMechanism.State.FINGERS_STOWED_EXTENDED) {
-        if (operator.startButton.isBeingPressed()) {
+        if (operator.leftJoystickButton.isBeingPressed()) {
           hatchMech.conformToState(State.FINGERS_STOWED_EXTENDED);
         } else {
           hatchMech.conformToState(State.STOWED);

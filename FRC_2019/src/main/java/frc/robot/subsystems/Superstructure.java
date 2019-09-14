@@ -257,15 +257,15 @@ public class Superstructure extends Subsystem {
     }
 
     public void deployingState(ElevatorHeights height) {
-        RobotState.visionTarget.setDesiredTargetArea(8.8);
+        RobotState.visionTarget.setDesiredTargetArea(8.7);
         if (RobotState.visionTarget.isTargetVisible()) {
             if (hasHatchByDeduction()) {
                 RequestList state = new RequestList(Arrays.asList(drive.alignToTargetRequest(), elevator.heightRequest(ElevatorHeights.DOWN.hatchPosition),
                         hatchMech.stateRequest(HatchMechanism.State.STOWED), intake.stateRequest(Intake.State.OFF)),
                         true);
                 RequestList queue = new RequestList(Arrays.asList(elevator.heightRequest(height.hatchPosition),
-                        drive.timeDriveRequest(new DriveSignal(0.15, 0.15), 0.75),
-                        drive.openLoopRequest(DriveSignal.BRAKE), hatchMech.stateRequest(HatchMechanism.State.SCORING),
+                        drive.timeDriveRequest(new DriveSignal(0.25, 0.25), 0.9),
+                        drive.openLoopRequest(DriveSignal.NEUTRAL), hatchMech.stateRequest(HatchMechanism.State.SCORING),
                         waitRequest(0.25), drive.timeDriveRequest(new DriveSignal(-0.2, -0.2), 0.75),
                         drive.openLoopRequest(DriveSignal.BRAKE), hatchMech.stateRequest(HatchMechanism.State.STOWED),
                         waitRequest(0.2), elevator.heightRequest(ElevatorHeights.DOWN.hatchPosition)), false);
@@ -277,7 +277,7 @@ public class Superstructure extends Subsystem {
                         true);
                 RequestList queue = new RequestList(Arrays.asList(
                         elevator.heightRequest(height.cargoPosition),
-                        drive.timeDriveRequest(new DriveSignal(0.15, 0.15), 0.9),
+                        drive.timeDriveRequest(new DriveSignal(0.25, 0.25), 0.9),
                         drive.openLoopRequest(DriveSignal.BRAKE), intake.stateRequest(Intake.State.OUTAKE_ELEVATOR_UP),
                         waitRequest(0.3), intake.stateRequest(Intake.State.OFF),
                         elevator.heightRequest(ElevatorHeights.DOWN.hatchPosition)), false);
@@ -295,8 +295,8 @@ public class Superstructure extends Subsystem {
     }
 
     public void clearRequests() {
-        queuedRequests.clear();
         activeRequests = new RequestList();
+        queuedRequests.clear();
     }
 
 

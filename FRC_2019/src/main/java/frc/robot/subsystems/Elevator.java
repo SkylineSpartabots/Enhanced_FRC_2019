@@ -363,7 +363,7 @@ public class Elevator extends Subsystem {
             if (getLimitSwitch()) {
                 master.set(ControlMode.PercentOutput, 0);
             } else if (!SmartDashboardInteractions.elevatorLimitSwitchOverride.get()) {
-                master.set(ControlMode.PercentOutput, -0.17);
+                master.set(ControlMode.PercentOutput, -0.2);
                 TelemetryUtil.print("ELEVATOR POWER DOWN TO LIMIT SWITCH", PrintStyle.WARNING);
             }
         } else if (getState() == ControlState.Position && !SmartDashboardInteractions.elevatorEncoderOverride.get()) {

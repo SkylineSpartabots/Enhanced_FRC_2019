@@ -289,7 +289,7 @@ public class Intake extends Subsystem {
         
             SmartDashboard.putBoolean("Kebab State", kebabSolenoid.get());
         }
-   
+        SmartDashboard.putBoolean("Raw Cargo", isCargoFromSensor());
         SmartDashboard.putBoolean("Has Cargo", hasCargo());
         
     }
