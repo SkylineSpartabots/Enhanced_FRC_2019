@@ -10,6 +10,7 @@ package frc.robot;
 import java.util.Arrays;
 
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Watchdog;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -79,7 +80,6 @@ public class Robot extends TimedRobot {
     driveControl = new DriveControl();
     subsystems = new SubsystemManager(Arrays.asList(drive, elevator, intake, hatchMech, s));
     limelight = limelight.getInstance();
-
     driver = new Xbox(0);
     operator = new Xbox(1);
 
@@ -93,6 +93,13 @@ public class Robot extends TimedRobot {
 
     SmartDashboardInteractions.updateOverrides();
     // trajectoryGenerator.generateTrajectories();
+    //limelight.ledsOn(false);
+    //limelight.setDriverMode();
+  }
+
+  @Override
+  public void robotPeriodic() {
+    allPeriodic();
   }
 
   public void allPeriodic() {
@@ -259,7 +266,7 @@ public class Robot extends TimedRobot {
 
     double driveThrottle = driver.getY(Hand.kLeft) * elevator.getAntiTipCoeffecient();
     double turn = driver.getX(Hand.kRight) * elevator.getAntiTipCoeffecient();
-    drive.setOpenLoop(driveControl.arcadeDrive(driveThrottle, turn));
+    drive.setOpenLoop(driveControl.arcadeDrive(driveThrottle, turn*0.5));
 
     boolean hasCargo = intake.hasCargo();
     boolean hasHatch = hatchMech.hasHatch();
@@ -329,6 +336,7 @@ public class Robot extends TimedRobot {
         hatchMech.conformToState(HatchMechanism.State.STOWED);
       } else if (driver.leftBumper.wasActivated()) {
         hatchMech.conformToState(HatchMechanism.State.RECIEVING);
+        //System.out.println("conforming to recieved");
       } else if (driver.rightBumper.wasActivated()) {
         hatchMech.conformToState(HatchMechanism.State.SCORING);
       } else if (hatchMech.getState() == HatchMechanism.State.STOWED
@@ -337,6 +345,7 @@ public class Robot extends TimedRobot {
           hatchMech.conformToState(State.FINGERS_STOWED_EXTENDED);
         } else {
           hatchMech.conformToState(State.STOWED);
+          //System.out.println("conforming to stowed");
         }
       }
     }

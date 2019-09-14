@@ -172,54 +172,58 @@ public class Intake extends Subsystem {
 
         @Override
         public void onLoop(double timestamp) {
-        if(!SmartDashboardInteractions.cargoSensorOverride.get()) {
-            switch(currentState) {
-                case OFF:
-                    break;
-                case IDLE_WITH_KEBABS:
-                    break;
-                case INTAKE_ELEVATOR_UP:
-                    break;
-                case OUTAKE_ELEVATOR_UP:
-                    break;
-                case HOLDING:
-                    if(stateChanged) {
-                        hasCargo = true;
-                    }
-                    if(!isCargoFromSensor()) {
-                        setInnerIntakeSpeed(0.5);
-                    } else {
-                        setInnerIntakeSpeed(0);
-                    }
-                    break;
-                case CARGO_PHOBIC:
-                    if(stateChanged) {
-                        hasCargo = false;
-                    }
-                    if(isCargoFromSensor()) { 
-                        setInnerIntakeSpeed(-0.7);
-                    } else {
-                        setInnerIntakeSpeed(0);
-                    }
-
-                    break;
-                default:
-                    boolean rawCargo = isCargoFromSensor();
-                    if(stateChanged) 
-                        hasCargo = false;
-                    if(rawCargo) {
-                        if(Double.isInfinite(beamBreakSensorBeganTimestamp)) {
-                            beamBreakSensorBeganTimestamp = timestamp;
-                        } else {
-                            if(timestamp - beamBreakSensorBeganTimestamp > 0.3) {
-                                hasCargo = true;
-                            }
+            if(!SmartDashboardInteractions.cargoSensorOverride.get()) {
+                switch(currentState) {
+                    case OFF:
+                        break;
+                    case IDLE_WITH_KEBABS:
+                        break;
+                    case INTAKE_ELEVATOR_UP:
+                        break;
+                    case OUTAKE_ELEVATOR_UP:
+                        break;
+                    case HOLDING:
+                        if(stateChanged) {
+                            hasCargo = true;
                         }
-                    } else if(!Double.isInfinite(beamBreakSensorBeganTimestamp)) {
-                        beamBreakSensorBeganTimestamp = Double.POSITIVE_INFINITY;
-                    }
-                    break;
+                        if(!isCargoFromSensor()) {
+                            setInnerIntakeSpeed(0.5);
+                        } else {
+                            setInnerIntakeSpeed(0);
+                        }
+                        break;
+                    case CARGO_PHOBIC:
+                        if(stateChanged) {
+                            hasCargo = false;
+                        }
+                        if(isCargoFromSensor()) { 
+                            setInnerIntakeSpeed(-0.7);
+                        } else {
+                            setInnerIntakeSpeed(0);
+                        }
+
+                        break;
+                    default:
+                        boolean rawCargo = isCargoFromSensor();
+                        if(stateChanged) {
+                            
+                            hasCargo = false;
+                        }
+                        if(rawCargo) {
+                            if(Double.isInfinite(beamBreakSensorBeganTimestamp)) {
+                                beamBreakSensorBeganTimestamp = timestamp;
+                            } else {
+                                if(timestamp - beamBreakSensorBeganTimestamp > 0.3) {
+                                    hasCargo = true;
+                                }
+                            }
+                        } else if(!Double.isInfinite(beamBreakSensorBeganTimestamp)) {
+                            beamBreakSensorBeganTimestamp = Double.POSITIVE_INFINITY;
+                        }
+                        break;
                 }
+
+                stateChanged = false;
             } else {
                 hasCargo = false;
             }
@@ -291,6 +295,7 @@ public class Intake extends Subsystem {
         }
         SmartDashboard.putBoolean("Raw Cargo", isCargoFromSensor());
         SmartDashboard.putBoolean("Has Cargo", hasCargo());
+        SmartDashboard.putBoolean("intake statechanged", stateChanged);
         
     }
 

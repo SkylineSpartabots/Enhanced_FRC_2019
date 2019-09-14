@@ -20,9 +20,9 @@ public class Ports {
     public final static int BEAM_BREAK = 0;
 
     //Hatch Mechanism Subsystem Ports
-    public final static int FINGERS_SOLENOID = 7;
+    public final static int FINGERS_SOLENOID = 7;//7
     public final static int SLIDER_SOLENOID = 6;
-    public static final int JACKS_SOLENOID = 1; 
+    public static final int JACKS_SOLENOID = 1;//1 
     public final static int HATCH_DISTANCE_SENSOR = 3;
 
     //Elevator Ports

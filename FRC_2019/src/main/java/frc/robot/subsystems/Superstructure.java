@@ -53,7 +53,7 @@ public class Superstructure extends Subsystem {
     }
 
     public enum ElevatorHeights {
-        DOWN(0, 0), FIRST_LEVEL(0, 22.5), SECOND_LEVEL(33.5, 52.5), THIRD_LEVEL(63.5, 79), CARGO_SHIP(0, 40);
+        DOWN(0, 0), FIRST_LEVEL(0, 22.5), SECOND_LEVEL(33.5, 52.5), THIRD_LEVEL(63.5, 79), CARGO_SHIP(40, 40);
         // SECOND_LEVEL(28, 48.5)
         public double hatchPosition;
         public double cargoPosition;
@@ -260,6 +260,7 @@ public class Superstructure extends Subsystem {
         RobotState.visionTarget.setDesiredTargetArea(8.7);
         if (RobotState.visionTarget.isTargetVisible()) {
             if (hasHatchByDeduction()) {
+                //hatch deploy
                 RequestList state = new RequestList(Arrays.asList(drive.alignToTargetRequest(), elevator.heightRequest(ElevatorHeights.DOWN.hatchPosition),
                         hatchMech.stateRequest(HatchMechanism.State.STOWED), intake.stateRequest(Intake.State.OFF)),
                         true);
@@ -272,6 +273,7 @@ public class Superstructure extends Subsystem {
                 request(state);
                 replaceQueue(queue);
             } else {
+                //cargo deploy
                 RequestList state = new RequestList(Arrays.asList(drive.alignToTargetRequest(),
                         hatchMech.stateRequest(HatchMechanism.State.STOWED), intake.stateRequest(Intake.State.OFF)),
                         true);

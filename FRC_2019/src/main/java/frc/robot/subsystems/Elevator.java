@@ -112,7 +112,7 @@ public class Elevator extends Subsystem {
         resetToAbsolutePosition();
 
         DoubleSupplier elevetorEncoderSupplier = () -> periodicIO.position;
-        elevatorPID = new PIDController(0.016, 0.00, 0.00, 10, elevetorEncoderSupplier);
+        elevatorPID = new PIDController(0.0005, 0.014, 0.0, 10, elevetorEncoderSupplier);
 
         configForAscent();
 

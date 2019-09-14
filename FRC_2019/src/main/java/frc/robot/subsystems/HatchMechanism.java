@@ -134,6 +134,7 @@ public class HatchMechanism extends Subsystem {
                     }
                 } else {
                     if (hasHatchFromSensor()) {
+                        //System.out.println("raw has hatch from sensor " + hasHatchFromSensor());
                         if (Double.isInfinite(distanceSensorBeganTimestamp)) {
                             distanceSensorBeganTimestamp = timestamp;
                         } else {
@@ -183,6 +184,7 @@ public class HatchMechanism extends Subsystem {
     public void outputTelemetry() {
         SmartDashboard.putBoolean("Has hatch", hasHatch());
         SmartDashboard.putNumber("Raw Distance Sensor", hatchDistanceSensor.getValue());
+        SmartDashboard.putBoolean("Fingers State", fingers.get());
         if (Constants.showDebugOutput) {
             SmartDashboard.putBoolean("Fingers State", fingers.get());
             SmartDashboard.putBoolean("Slider State", slider.get());

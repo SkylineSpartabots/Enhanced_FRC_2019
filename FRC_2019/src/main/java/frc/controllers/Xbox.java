@@ -27,8 +27,8 @@ public class Xbox extends XboxController {
     private final int RIGHT_BUMPER = 6;
     private final int BACK_BUTTON = 7;
     private final int START_BUTTON = 8;
-    private final int RIGHT_JOYSTICK_BUTTON = 9;
-    private final int LEFT_JOYSTICK_BUTTON = 10;
+    private final int RIGHT_JOYSTICK_BUTTON = 10;//TODO: some of these numbers r wrong
+    private final int LEFT_JOYSTICK_BUTTON = 9;
     private final int DPAD_UP = -1;
     private final int DPAD_RIGHT = -2;
     private final int DPAD_DOWN = -3;
