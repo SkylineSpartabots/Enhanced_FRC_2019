@@ -235,7 +235,7 @@ public class Drivetrain extends Subsystem {
         return RobotState.visionTarget.hasReachedTarget();
     }
 
-    public synchronized void setCurvedProfileControl(CurvedProfile curvedProfile[]) {
+    public synchronized void setCurvedProfileControl(CurvedProfile curvedProfiles[]) {
         if (state != DriveControlState.CURVED_PROFILE_FOLLOWER) {
             setBrakeMode(true);
             leftMaster.configNeutralDeadband(0);
@@ -248,24 +248,49 @@ public class Drivetrain extends Subsystem {
         }
 
             periodicIO.curvedProfileIndex = 0;
-            periodicIO.currentProfile = curvedProfile;
-
-            periodicIO.desired_left_distance = periodicIO.left_distance + 
-                curvedProfile[periodicIO.curvedProfileIndex].getLeftDistance();
-
-            periodicIO.desired_right_distance = periodicIO.right_distance + 
-                curvedProfile[periodicIO.curvedProfileIndex].getRightDistance();
-
-            leftCurvedPathController.setDesiredValue(periodicIO.currentProfile[periodicIO.curvedProfileIndex].getDesiredLeftVelocity());
-            rightCurvedPathController.setDesiredValue(periodicIO.currentProfile[periodicIO.curvedProfileIndex].getDesiredRightVelocity());
-            leftCurvedPathController.reset();
-            rightCurvedPathController.reset();
+            periodicIO.curvedProfiles = curvedProfiles;
+            updateAndResetCurvedProfilePID();
         
+    }
+
+    private void updateAndResetCurvedProfilePID() {
+        periodicIO.desired_left_distance = periodicIO.left_distance + 
+            periodicIO.curvedProfiles[periodicIO.curvedProfileIndex].getLeftDistance();
+        
+        periodicIO.isLeftProfileForward = periodicIO.desired_left_distance < periodicIO.left_distance;
+        periodicIO.isRightProfileForward = periodicIO.desired_right_distance < periodicIO.left_distance;
+
+        periodicIO.desired_right_distance = periodicIO.right_distance + 
+            periodicIO.curvedProfiles[periodicIO.curvedProfileIndex].getRightDistance();
+
+        leftCurvedPathController.setDesiredValue(periodicIO.curvedProfiles[periodicIO.curvedProfileIndex].getDesiredLeftVelocity());
+        rightCurvedPathController.setDesiredValue(periodicIO.curvedProfiles[periodicIO.curvedProfileIndex].getDesiredRightVelocity());
+        leftCurvedPathController.reset();
+        rightCurvedPathController.reset();
+    }
+
+    private boolean hasLeftReachedTarget() {
+        return periodicIO.isLeftProfileForward ? periodicIO.desired_left_distance >= periodicIO.left_distance 
+            : periodicIO.desired_left_distance <= periodicIO.left_distance;
+    }
+
+    private boolean hasRightReachedTarget() {
+        return periodicIO.isRightProfileForward ? periodicIO.desired_right_distance >= periodicIO.right_distance 
+            : periodicIO.desired_right_distance <= periodicIO.right_distance;
     }
 
     private void updateCurvedProfileFollower() {
         if (state == DriveControlState.CURVED_PROFILE_FOLLOWER) {
-            if(p)
+            if(hasLeftReachedTarget() || hasRightReachedTarget()) {
+                if(periodicIO.curvedProfiles.length - 1 == periodicIO.curvedProfileIndex) {
+                    setOpenLoop(DriveSignal.BRAKE);
+                    return;
+                }
+                periodicIO.curvedProfileIndex++;
+                updateAndResetCurvedProfilePID();
+            }
+            periodicIO.left_demand = leftCurvedPathController.getOutput();
+            periodicIO.right_demand = leftCurvedPathController.getOutput();
         } else {
             TelemetryUtil.print("Drive is not in a curved profile following state", PrintStyle.ERROR);
         }
@@ -466,10 +491,13 @@ public class Drivetrain extends Subsystem {
         public double right_demand;
         public double desired_left_distance;
         public double desired_right_distance;
-        public  CurvedProfile[] curvedProfiles;
+
+        //Profile Data
+        public CurvedProfile[] curvedProfiles;
         public int curvedProfileIndex = 0;
-        public CurvedProfile currentProfile = curvedProfiles[curvedProfileIndex];
-        
+        public boolean isLeftProfileForward;
+        public boolean isRightProfileForward;
+
     }
 
 }

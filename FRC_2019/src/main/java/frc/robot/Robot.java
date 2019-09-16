@@ -19,7 +19,6 @@ import frc.robot.auto.AutoModeExecuter;
 import frc.robot.auto.SmartDashboardInteractions;
 import frc.robot.loops.Limelight;
 import frc.robot.loops.Looper;
-import frc.robot.paths.TrajectoryGenerator;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.HatchMechanism;
@@ -92,7 +91,6 @@ public class Robot extends TimedRobot {
     elevator.zeroSensors();
 
     SmartDashboardInteractions.updateOverrides();
-    // trajectoryGenerator.generateTrajectories();
     //limelight.ledsOn(false);
     //limelight.setDriverMode();
   }

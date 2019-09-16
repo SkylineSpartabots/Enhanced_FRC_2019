@@ -69,4 +69,6 @@ public class Constants {
 	public static final double CLIMB_TICKS_PER_INCH = 0;
 
 	public static final double MIN_CLIMB_HEIGHT = 0;
+
+	public static final double MAX_DRIVE_VELOCITY = 0;
 }

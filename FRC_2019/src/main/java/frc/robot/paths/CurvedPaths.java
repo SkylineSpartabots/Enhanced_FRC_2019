@@ -11,4 +11,34 @@ package frc.robot.paths;
  * Add your docs here.
  */
 public class CurvedPaths {
+
+    private boolean isLeft;
+    
+    public CurvedPaths(boolean isLeft) {
+        this.isLeft = isLeft;
+    }
+
+    public CurvedProfile[] habSideToNearRocket = {
+        //new CurvedProfile(leftDistance, rightDistance, isLeft),
+        //new CurvedProfile(leftDistance, rightDistance, isLeft),
+        //new CurvedProfile(leftDistance, rightDistance, isLeft)
+    };
+
+    public CurvedProfile[] nearRocketToHatchDepot = {
+        //new CurvedProfile(leftDistance, rightDistance, isLeft),
+        //new CurvedProfile(leftDistance, rightDistance, isLeft),
+        //new CurvedProfile(leftDistance, rightDistance, isLeft)
+    };
+
+    public CurvedProfile[] hatchDepotToFarRocket = {
+        //new CurvedProfile(leftDistance, rightDistance, isLeft),
+        //new CurvedProfile(leftDistance, rightDistance, isLeft),
+        //new CurvedProfile(leftDistance, rightDistance, isLeft)
+    };
+
+    public CurvedProfile[] farRocketToSideCargoShip = {
+        //new CurvedProfile(leftDistance, rightDistance, isLeft),
+        //new CurvedProfile(leftDistance, rightDistance, isLeft),
+        //new CurvedProfile(leftDistance, rightDistance, isLeft)
+    };
 }
