@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Watchdog;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.controllers.Xbox;
 import frc.robot.auto.AutoModeExecuter;
@@ -76,9 +77,9 @@ public class Robot extends TimedRobot {
     elevator = elevator.getInstance();
     s = Superstructure.getInstance();
     robotState = RobotState.getInstance();
-    driveControl = new DriveControl();
     subsystems = new SubsystemManager(Arrays.asList(drive, elevator, intake, hatchMech, s));
     limelight = limelight.getInstance();
+    driveControl = new DriveControl();
     driver = new Xbox(0);
     operator = new Xbox(1);
 
@@ -264,7 +265,7 @@ public class Robot extends TimedRobot {
 
     double driveThrottle = driver.getY(Hand.kLeft) * elevator.getAntiTipCoeffecient();
     double turn = driver.getX(Hand.kRight) * elevator.getAntiTipCoeffecient();
-    drive.setOpenLoop(driveControl.arcadeDrive(driveThrottle, turn*0.5));
+    drive.setOpenLoop(driveControl.arcadeDrive(driveThrottle, turn * 0.75));
 
     boolean hasCargo = intake.hasCargo();
     boolean hasHatch = hatchMech.hasHatch();

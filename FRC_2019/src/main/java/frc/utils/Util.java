@@ -31,4 +31,14 @@ public class Util {
         return Math.min(max, Math.max(min, v));
     }
 
+    public static double clipToOutput(double value) {
+        if (value > 1.0) {
+            return 1.0;
+          }
+          if (value < -1.0) {
+            return -1.0;
+          }
+          return value;
+    }
+
 }

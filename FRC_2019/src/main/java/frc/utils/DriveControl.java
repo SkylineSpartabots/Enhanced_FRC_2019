@@ -109,8 +109,39 @@ public class DriveControl {
 
 
     public DriveSignal arcadeDrive(double throttle, double turn) {
-        
-        return new DriveSignal(throttle + turn, throttle - turn);
+        throttle = Util.clipToOutput(throttle);
+      
+        turn = Util.clipToOutput(turn);
+      
+        throttle = Math.copySign(throttle * throttle, throttle);
+        turn = Math.copySign(turn * turn, turn);
+      
+        double leftMotorOutput;
+        double rightMotorOutput;
+      
+        double maxInput = Math.copySign(Math.max(Math.abs(throttle), Math.abs(turn)), throttle);
+      
+        if (throttle >= 0.0) {
+            // First quadrant, else second quadrant
+            if (turn >= 0.0) {
+              leftMotorOutput = maxInput;
+              rightMotorOutput = throttle - turn;
+            } else {
+              leftMotorOutput = throttle + turn;
+              rightMotorOutput = maxInput;
+            }
+          } else {
+            // Third quadrant, else fourth quadrant
+            if (turn >= 0.0) {
+              leftMotorOutput = throttle + turn;
+              rightMotorOutput = maxInput;
+            } else {
+              leftMotorOutput = maxInput;
+              rightMotorOutput = throttle - turn;
+            }
+          }
+      
+          return new DriveSignal(leftMotorOutput, rightMotorOutput);
     }
 
 }

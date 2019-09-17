@@ -20,6 +20,7 @@ import com.ctre.phoenix.motorcontrol.StatusFrame;
 import com.ctre.phoenix.motorcontrol.VelocityMeasPeriod;
 
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.drivers.LazyTalonSRX;
 import frc.robot.Constants;
@@ -34,6 +35,7 @@ import frc.robot.subsystems.requests.Request;
 import frc.utils.DriveSignal;
 import frc.utils.PIDController;
 import frc.utils.TelemetryUtil;
+import frc.utils.Util;
 import frc.utils.TelemetryUtil.PrintStyle;
 
 /**
@@ -108,6 +110,7 @@ public class Drivetrain extends Subsystem {
             master.configVelocityMeasurementWindow(32, 10);
             master.setSensorPhase(false);
         }
+
 
         setCurrentLimit(40);
 
@@ -289,8 +292,10 @@ public class Drivetrain extends Subsystem {
                 periodicIO.curvedProfileIndex++;
                 updateAndResetCurvedProfilePID();
             }
-            periodicIO.left_demand = leftCurvedPathController.getOutput();
-            periodicIO.right_demand = leftCurvedPathController.getOutput();
+            periodicIO.left_demand += leftCurvedPathController.getOutput();
+            //periodicIO.left_demand = Util.boundToScope(-1, 1, periodicIO.left_demand);
+            periodicIO.right_demand += rightCurvedPathController.getOutput();
+            //periodicIO.right_demand = Util.boundToScope(-1, 1, periodicIO.right_demand);
         } else {
             TelemetryUtil.print("Drive is not in a curved profile following state", PrintStyle.ERROR);
         }
@@ -465,6 +470,7 @@ public class Drivetrain extends Subsystem {
             public void act() {
                 setVisionControl();
             }
+
         };
     }
 
