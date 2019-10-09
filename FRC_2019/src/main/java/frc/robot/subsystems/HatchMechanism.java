@@ -158,7 +158,7 @@ public class HatchMechanism extends Subsystem {
                 if(stateChanged) {
                     scoringStateBeganTimestamp = timestamp;
                 }
-                if(timestamp - scoringStateBeganTimestamp > 0.2) {
+                if(timestamp - scoringStateBeganTimestamp > 0) {
                     jacks.set(true);
                 } else {
                     jacks.set(false);

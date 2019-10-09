@@ -18,7 +18,7 @@ public class CurvedPaths {
         this.isLeft = isLeft;
     }
 
-    public CurvedProfile[] habSideToNearRocket = {
+    public static CurvedProfile[] habSideToNearRocket = {
         //new CurvedProfile(leftDistance, rightDistance, isLeft),
         //new CurvedProfile(leftDistance, rightDistance, isLeft),
         //new CurvedProfile(leftDistance, rightDistance, isLeft)

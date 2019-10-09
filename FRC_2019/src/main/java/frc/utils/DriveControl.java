@@ -109,7 +109,7 @@ public class DriveControl {
 
 
     public DriveSignal arcadeDrive(double throttle, double turn) {
-        throttle = Util.clipToOutput(throttle);
+        /*throttle = Util.clipToOutput(throttle);
       
         turn = Util.clipToOutput(turn);
       
@@ -142,6 +142,9 @@ public class DriveControl {
           }
       
           return new DriveSignal(leftMotorOutput, rightMotorOutput);
+    }*/
+
+    return new DriveSignal(throttle + turn, throttle - turn);
     }
 
 }

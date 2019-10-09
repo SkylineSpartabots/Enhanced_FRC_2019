@@ -159,7 +159,7 @@ public class Xbox extends XboxController {
                 }
             }
 
-            if(buttonCheck) { //TODO: has been pressed to short press
+            if(buttonCheck) {
                 if(buttonActive) {
                     if((Timer.getFPGATimestamp() - buttonPressStartTime) > longPressDuration && !longPressActivated) {
                         longPressActivated = true;

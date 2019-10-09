@@ -117,7 +117,7 @@ public class Drivetrain extends Subsystem {
         DoubleSupplier drivePIDSupplier = () -> RobotState.visionTarget.getTargetArea();
         visionDrivePID = new PIDController(0, 0, 0, 0.005, drivePIDSupplier);
         visionDrivePID.setDesiredValue(DESIRED_TARGET_AREA);
-        visionDrivePID.setMinMaxOutput(-0.2, 0.4);
+        visionDrivePID.setMinMaxOutput(-0.2, 0.45);
         visionDrivePID.reset();
 
         DoubleSupplier turnPIDSupplier = () -> RobotState.visionTarget.getXOffset();
@@ -203,8 +203,9 @@ public class Drivetrain extends Subsystem {
             setBrakeMode(false);
             leftMaster.configNeutralDeadband(0.0, 0);
             rightMaster.configNeutralDeadband(0.0, 0);
-            visionTurnPID.setConstants(0.012, 0.0, 0.0);
-            visionDrivePID.setConstants(0.04, 0, 0);
+
+            visionTurnPID.setConstants(0.013, 0.0, 0.0);
+            visionDrivePID.setConstants(0.05, 0, 0);
             Limelight.getInstance().ledsOn(true);
             visionDrivePID.reset();
             visionTurnPID.reset();
@@ -217,7 +218,7 @@ public class Drivetrain extends Subsystem {
         if (state == DriveControlState.VISION) {
             if (RobotState.visionTarget.isTargetVisible()) {
                 double turnSpeed = visionTurnPID.getOutput();
-                double driveSpeed = visionDrivePID.getOutput() / (1 + (0.022 * visionTurnPID.getError()));
+                double driveSpeed = visionDrivePID.getOutput() / (1 + Math.abs((0.03 * visionTurnPID.getError())));
                 setVisionControl(new DriveSignal(driveSpeed - turnSpeed, driveSpeed + turnSpeed));
                 TelemetryUtil.print("Updating vision", PrintStyle.ERROR);
                 SmartDashboard.putNumber("PID Drive Speed", driveSpeed);
@@ -344,7 +345,7 @@ public class Drivetrain extends Subsystem {
     }
 
     public double getAngularVelocity() {
-        return (getRightLinearVelocity() - getLeftLinearVelocity()) / Constants.kDriveWheelTrackWidthInches;
+        return (getRightLinearVelocity() - getLeftLinearVelocity()) / Constants.TRACK_WIDTH;
     }
 
     private final Loop loop = new Loop() {

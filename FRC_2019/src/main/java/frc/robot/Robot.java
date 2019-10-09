@@ -92,6 +92,7 @@ public class Robot extends TimedRobot {
     elevator.zeroSensors();
 
     SmartDashboardInteractions.updateOverrides();
+    
     //limelight.ledsOn(false);
     //limelight.setDriverMode();
   }
@@ -155,6 +156,11 @@ public class Robot extends TimedRobot {
       disabledLooper.stop();
       enabledLooper.start();
       //SmartDashboard.putBoolean("Auto", false);
+
+      //needs to be commented out
+      drive.zeroSensors();
+      elevator.zeroSensors();
+      
     } catch (Throwable t) {
       CrashTracker.logThrowableCrash(t);
     }
@@ -238,6 +244,17 @@ public class Robot extends TimedRobot {
           return;
         }
       }
+    } else if (operator.rightBumper.isBeingPressed()) {
+        if(limelight.canVision()) {
+          if(operator.rightBumper.wasActivated()) {
+            s.hatchRetrievingState();
+          }
+        } else {
+          if(operator.rightBumper.wasActivated()) {
+            s.alignToTarget();
+          }
+        }
+        return;
     }
 
     if(!enteringVisionState) {
