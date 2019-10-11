@@ -128,11 +128,11 @@ public class HatchMechanism extends Subsystem {
         public void onLoop(double timestamp) {
 
             if (!SmartDashboardInteractions.hatchSensorOverride.get()) {
-                if (currentState == State.STOWED) {
+                /*if (currentState == State.STOWED) {
                     if (stateChanged) {
                         hasHatch = hasHatchFromSensor();
                     }
-                } else {
+                } else {*/
                     if (hasHatchFromSensor()) {
                         //System.out.println("raw has hatch from sensor " + hasHatchFromSensor());
                         if (Double.isInfinite(distanceSensorBeganTimestamp)) {
@@ -149,7 +149,7 @@ public class HatchMechanism extends Subsystem {
                     if (currentState == State.RECIEVING && hasHatch) {
                         conformToState(State.STOWED);
                     }
-                }
+                //}
             } else {
                 hasHatch = false;
             }

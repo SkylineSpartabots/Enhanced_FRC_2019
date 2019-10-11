@@ -10,10 +10,7 @@ package frc.robot;
 import java.util.Arrays;
 
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.Watchdog;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
-import edu.wpi.first.wpilibj.GenericHID.RumbleType;
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.controllers.Xbox;
 import frc.robot.auto.AutoModeExecuter;
@@ -218,8 +215,13 @@ public class Robot extends TimedRobot {
       enteringVisionState = false;
 
       if (limelight.canVision()) {
-        driver.rumble(0.3);
-        operator.rumble(0.3);
+        if(RobotState.visionTarget.isTargetVisible()) {
+          driver.rumble(0.5);
+          operator.rumble(0.5);
+        } else {
+          driver.rumble(0.0);
+          operator.rumble(0.0);
+        }
 
         limelight.ledsOn(true);
         limelight.setVisionMode();
@@ -238,32 +240,23 @@ public class Robot extends TimedRobot {
       } else {
         TelemetryUtil.print("Normal VISION is DISABLED by OVERRIDES", PrintStyle.WARNING);
         if(operator.rightBumper.isBeingPressed()) {
-          driver.rumble(0.3);
-          operator.rumble(0.3);
+          if(RobotState.visionTarget.isTargetVisible()) {
+            driver.rumble(0.4);
+            operator.rumble(0.4);
+          } else {
+            driver.rumble(0.0);
+            operator.rumble(0.0);
+          }
           s.alignToTarget();
           return;
         }
       }
-    } else if (operator.rightBumper.isBeingPressed()) {
-        if(limelight.canVision()) {
-          if(operator.rightBumper.wasActivated()) {
-            s.hatchRetrievingState();
-          }
-        } else {
-          if(operator.rightBumper.wasActivated()) {
-            s.alignToTarget();
-          }
-        }
-        return;
     }
 
     if(!enteringVisionState) {
       enteringVisionState = true;
       s.clearRequests();
     }
-
-
-    
 
     driver.rumble(0);
     operator.rumble(0);
