@@ -32,7 +32,7 @@ import frc.robot.loops.Limelight;
 import frc.robot.loops.Loop;
 import frc.robot.paths.CurvedProfile;
 import frc.robot.subsystems.requests.Request;
-import frc.utils.DriveSignal;
+import frc.robot.states.DriveSignal;
 import frc.utils.PIDController;
 import frc.utils.TelemetryUtil;
 import frc.utils.Util;

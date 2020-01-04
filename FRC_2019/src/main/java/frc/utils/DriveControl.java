@@ -7,6 +7,8 @@
 
 package frc.utils;
 
+import frc.robot.states.DriveSignal;
+
 /**
  * Add your docs here.
  */

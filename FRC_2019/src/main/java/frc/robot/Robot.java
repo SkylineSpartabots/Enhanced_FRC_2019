@@ -26,7 +26,7 @@ import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.HatchMechanism.State;
 import frc.utils.CrashTracker;
 import frc.utils.DriveControl;
-import frc.utils.DriveSignal;
+import frc.robot.states.DriveSignal;
 import frc.utils.TelemetryUtil;
 import frc.utils.TelemetryUtil.PrintStyle;
 

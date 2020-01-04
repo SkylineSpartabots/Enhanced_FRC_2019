@@ -43,5 +43,5 @@ public class Ports {
 	public static final int LEFT_CLIMB_MOTOR = 10;
 	public static final int VACUUM_MOTOR = 11;
 
-
+    public static final int CANIFIER_ID = 16;
 }

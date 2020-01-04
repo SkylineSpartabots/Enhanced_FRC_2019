@@ -5,7 +5,7 @@
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
 
-package frc.utils;
+package frc.robot.states;
 
 /**
  * Add your docs here.

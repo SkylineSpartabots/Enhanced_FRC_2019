@@ -20,7 +20,7 @@ import frc.robot.loops.ILooper;
 import frc.robot.loops.Loop;
 import frc.robot.subsystems.requests.Request;
 import frc.robot.subsystems.requests.RequestList;
-import frc.utils.DriveSignal;
+import frc.robot.states.DriveSignal;
 
 /**
  * Add your docs here.
