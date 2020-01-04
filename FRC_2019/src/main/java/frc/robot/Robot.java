@@ -171,8 +171,10 @@ public class Robot extends TimedRobot {
 
       if (useOneController)
         driveWithOneController();
-      else
+      else {
         driveWithTwoControllers();
+      }
+        //driveWithTwoControllers();
 
       SmartDashboard.putBoolean("Robot Emergency", subsystems.hasEmergency());
       robotState.outputToSmartDashboard();
@@ -181,6 +183,7 @@ public class Robot extends TimedRobot {
       CrashTracker.logThrowableCrash(t);
       throw t;
     }
+
   }
 
   @Override
@@ -275,7 +278,11 @@ public class Robot extends TimedRobot {
 
     double driveThrottle = driver.getY(Hand.kLeft) * elevator.getAntiTipCoeffecient();
     double turn = driver.getX(Hand.kRight) * elevator.getAntiTipCoeffecient();
-    drive.setOpenLoop(driveControl.arcadeDrive(driveThrottle, turn * 0.75));
+    double drivePercent = 0.7;
+    double turnPercent = 0.4;
+    double driveC = 3;
+    double turnC = 1;
+    drive.setOpenLoop(driveControl.arcadeDrive(driveThrottle * drivePercent, turn * turnPercent));
 
     boolean hasCargo = intake.hasCargo();
     boolean hasHatch = hatchMech.hasHatch();

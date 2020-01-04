@@ -17,7 +17,7 @@ public class Constants {
 	public final static int BEAM_BREAK_THRESHOLD = 50;
 	public final static int HATCH_DISTANCE_THRESHOLD = 40;
 
-    public final static boolean showDebugOutput = false;
+    public final static boolean showDebugOutput = true;
 
     //Elevator constants
     public final static int elevatorEncoderStartingPosition = 0;

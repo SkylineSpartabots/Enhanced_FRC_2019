@@ -415,6 +415,9 @@ public class Drivetrain extends Subsystem {
             SmartDashboard.putNumber("Right Center Current", rightMaster.getMotorOutputPercent());
             SmartDashboard.putNumber("Right Back Current", rightSlaveB.getMotorOutputPercent());
         }
+
+        SmartDashboard.putNumber("Right Encoder", rightMaster.getSelectedSensorPosition());
+        SmartDashboard.putNumber("Left Encoder", leftMaster.getSelectedSensorPosition());
     }
 
     @Override

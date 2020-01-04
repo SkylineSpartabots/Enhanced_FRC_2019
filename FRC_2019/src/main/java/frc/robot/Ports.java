@@ -34,8 +34,8 @@ public class Ports {
 	public static final int DRIVE_RIGHT_CENTER = 3;
 	public static final int DRIVE_RIGHT_FRONT = 4;
 	public static final int DRIVE_RIGHT_BACK = 2;
-	public static final int DRIVE_LEFT_CENTER = 15;
-	public static final int DRIVE_LEFT_FRONT = 12;
+	public static final int DRIVE_LEFT_CENTER = 12;
+	public static final int DRIVE_LEFT_FRONT = 15;
     public static final int DRIVE_LEFT_BACK = 13;
     
 	//Climb Ports

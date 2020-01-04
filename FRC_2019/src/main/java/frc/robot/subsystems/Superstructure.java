@@ -9,6 +9,7 @@ package frc.robot.subsystems;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -240,6 +241,13 @@ public class Superstructure extends Subsystem {
     @Override
     public void registerEnabledLoops(ILooper enabledLooper) {
         enabledLooper.register(loop);
+    }
+
+    public void iaTesting() {
+        RequestList state = new RequestList(Arrays.asList(elevator.timedPowerSet(0.55, 0.5)), true);
+        RequestList queue = new RequestList(Arrays.asList(elevator.logVelocity("/home/lvuser/IATesting/logfile" + new Date().toString() + ".txt"), elevator.timedPowerSet(0, 0.1)), true);
+        request(state);
+        replaceQueue(queue);
     }
 
     public void hatchRetrievingState() {

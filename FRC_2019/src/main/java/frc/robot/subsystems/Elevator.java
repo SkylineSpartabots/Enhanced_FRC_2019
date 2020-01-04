@@ -7,6 +7,9 @@
 
 package frc.robot.subsystems;
 
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.DoubleSupplier;
@@ -17,6 +20,7 @@ import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.drivers.LazyTalonSRX;
 import frc.robot.Constants;
@@ -136,7 +140,7 @@ public class Elevator extends Subsystem {
      */
 
     private void configForAscent() {
-        if(!configuredForAscent) {
+        if (!configuredForAscent) {
             elevatorPID.setConstants(0.0005, 0.014, 0.0);
             elevatorPID.setMinMaxOutput(-0.3, 0.73);
             elevatorPID.setIRange(1000);
@@ -146,7 +150,7 @@ public class Elevator extends Subsystem {
     }
 
     private void configForDescent() {
-        if(configuredForAscent) {
+        if (configuredForAscent) {
             elevatorPID.setConstants(0.02, 0, 0);
             elevatorPID.setMinMaxOutput(-0.3, 0.1);
             TelemetryUtil.print("Config for descent", PrintStyle.INFO);
@@ -197,7 +201,7 @@ public class Elevator extends Subsystem {
     }
 
     public synchronized void setTargetHeight(double heightInFeet) {
-        
+
         if (heightInFeet > Constants.maxElevatorHeight) {
             heightInFeet = Constants.maxElevatorHeight;
         } else if (heightInFeet < Constants.minElevatorHeight) {
@@ -224,11 +228,11 @@ public class Elevator extends Subsystem {
     private boolean onTarget = false;
 
     public boolean hasReachedTargetHeight() {
-            if (Math.abs(targetHeight - getHeight()) <= Constants.elevatorHeightTolerance) {
-                if (!onTarget)
-                    onTarget = true;
-                return onTarget;
-            }
+        if (Math.abs(targetHeight - getHeight()) <= Constants.elevatorHeightTolerance) {
+            if (!onTarget)
+                onTarget = true;
+            return onTarget;
+        }
         return false;
     }
 
@@ -238,7 +242,7 @@ public class Elevator extends Subsystem {
     }
 
     private double getLockPower() {
-        if(SmartDashboardInteractions.elevatorEncoderOverride.get()) 
+        if (SmartDashboardInteractions.elevatorEncoderOverride.get())
             return 0.15;
         return 0.15 + (0.0004 * (periodicIO.demand - periodicIO.position));
     }
@@ -283,6 +287,48 @@ public class Elevator extends Subsystem {
             @Override
             public void act() {
                 lockHeight();
+            }
+        };
+    }
+
+    public Request logVelocity(String filePath) {
+        return new Request() {
+
+            @Override
+            public void act() {
+                java.io.File f = new java.io.File(filePath);
+                PrintWriter pw = null;
+                System.out.println("logging");
+                try {
+                    pw = new PrintWriter(f);
+                } catch (FileNotFoundException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                pw.write("at end of time, velocity: " + getVelocityFeetPerSec());
+                pw.write("height: " + getHeight());
+                System.out.println("||||||||||||||||||||||||||||||||||||||||||||||");
+                System.out.println("at end of time, velocity: " + master.getSelectedSensorVelocity());
+                System.out.println("height: " + getHeight());
+                System.out.println("||||||||||||||||||||||||||||||||||||||||||||||");
+                
+            }
+        };
+    }
+
+    public Request timedPowerSet(double power, double time) {
+        return new Request(){
+            double startTime = 0;
+            @Override
+            public void act() {
+                System.out.println("timed power called with power: " + power);
+                startTime = Timer.getFPGATimestamp();
+                periodicIO.demand = power;
+            }
+            @Override
+            public boolean isFinished() {
+                System.out.println("at end of time, velocity: " + master.getSelectedSensorVelocity());
+                return (Timer.getFPGATimestamp() - startTime) >= time;
             }
         };
     }
@@ -394,6 +440,8 @@ public class Elevator extends Subsystem {
             SmartDashboard.putNumber("Elevator Encoder", periodicIO.position);
             elevatorPID.enableDebug();
         }
+
+        
     
         SmartDashboard.putNumber("Elevator Height", getHeight());
         SmartDashboard.putBoolean("Elevator Limit Switch", getLimitSwitch());
