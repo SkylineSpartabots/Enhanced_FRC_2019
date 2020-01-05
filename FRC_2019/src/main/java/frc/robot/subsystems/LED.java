@@ -126,7 +126,7 @@ Deprecated methods
     canifier.setLEDOutput(0, LEDChannel.LEDChannelC);
   }
 
-  public void outputTelemetry() {
+  public void writePeriodicOutputs() {
       if(!state.equals(LightState.OFFSTATE)) {
             canifier.setLEDOutput(PeriodicIO.rPow, LEDChannel.LEDChannelA); //Sets the LED output to respective channels using PeriodicIO
             canifier.setLEDOutput(PeriodicIO.gPow, LEDChannel.LEDChannelB);
@@ -160,4 +160,9 @@ Code to put in driveWithController()
       led.setCustomSteady(TimedLEDState.SteadyLEDState.exampleSteadyState);
     }
 */
+
+  @Override
+  public void outputTelemetry() {
+
+  }
 }
